@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.openlmis.core.domain.BaseModel;
-import org.openlmis.core.domain.StockCardLineItemType;
+import org.openlmis.stockmanagement.domain.StockCardLineItemType;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
