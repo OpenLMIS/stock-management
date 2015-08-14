@@ -12,9 +12,12 @@ package org.openlmis.stockmanagement.service;
 
 import lombok.NoArgsConstructor;
 import org.openlmis.core.domain.*;
-import org.openlmis.core.dto.Lot;
-import org.openlmis.core.dto.StockCard;
-import org.openlmis.core.dto.StockCardLineItem;
+import org.openlmis.core.service.*;
+import org.openlmis.stockmanagement.dto.Lot;
+import org.openlmis.stockmanagement.dto.StockCard;
+import org.openlmis.stockmanagement.dto.StockCardLineItem;
+import org.openlmis.stockmanagement.domain.StockCardLineItemType;
+//import org.openlmis.web.
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
