@@ -48,11 +48,11 @@ public class StockCardService {
     return getTestLots(productId);
   }
 
-  public StockCard getStockCardByProduct(Long facilityId, Long productId) {
+  public StockCard getStockCard(Long facilityId, Long productId) {
     return repository.getStockCard(facilityId, productId);
   }
 
-  public StockCard getStockCard(Long facilityId, Long stockCardId) {
+  public StockCard getStockCardById(Long stockCardId) {
     return repository.getStockCardById(stockCardId);
   }
 
