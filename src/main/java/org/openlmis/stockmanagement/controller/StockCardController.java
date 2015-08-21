@@ -122,10 +122,12 @@ public class StockCardController extends BaseController
 
     private void filterLineItems(StockCard stockCard, Integer lineItemCount) {
         List<StockCardLineItem> lineItems = stockCard.getLineItems();
-        if (lineItemCount < 0) {
-            stockCard.setLineItems(lineItems.subList(0, 1));
-        } else if (lineItemCount < lineItems.size()) {
-            stockCard.setLineItems(lineItems.subList(0, lineItemCount));
+        if (lineItems != null) {
+            if (lineItemCount < 0) {
+                stockCard.setLineItems(lineItems.subList(0, 1));
+            } else if (lineItemCount < lineItems.size()) {
+                stockCard.setLineItems(lineItems.subList(0, lineItemCount));
+            }
         }
     }
 }

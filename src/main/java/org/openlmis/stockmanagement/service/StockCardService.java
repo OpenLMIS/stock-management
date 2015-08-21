@@ -17,7 +17,7 @@ import org.openlmis.stockmanagement.dto.Lot;
 import org.openlmis.stockmanagement.dto.StockCard;
 import org.openlmis.stockmanagement.dto.StockCardLineItem;
 import org.openlmis.stockmanagement.domain.StockCardLineItemType;
-//import org.openlmis.web.
+import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,32 +41,23 @@ public class StockCardService {
   @Autowired
   ProductService productService;
 
+  @Autowired
+  StockCardRepository repository;
+
   public List<Lot> getLots(Long productId) {
     return getTestLots(productId);
   }
 
   public StockCard getStockCardByProduct(Long facilityId, Long productId) {
-    return getTestStockCard(1L, facilityId, productId, 2400L, 2400L);
+    return repository.getStockCard(facilityId, productId);
   }
 
   public StockCard getStockCard(Long facilityId, Long stockCardId) {
-    return getTestStockCard(stockCardId, facilityId, 2412L, 2400L, 2400L);
+    return repository.getStockCardById(stockCardId);
   }
 
   public List<StockCard> getStockCards(Long facilityId) {
-    Long[] productIdData = {2412L,2418L,2421L,2413L,2416L,2415L,2422L,2423L,2425L,2426L};
-    Long[] quantityData = {2400L,1000L,500L,1000L,400L,1000L,300L,500L,1000L,200L};
-    Long[] quantityData2 = {200L,2400L,1000L,500L,2400L,1300L,200L,600L,200L,10L};
-
-    List<StockCard> stockCards = new ArrayList<>();
-    for (int i = 0; i < productIdData.length; i++) {
-      StockCard stockCard = getTestStockCard((long)i, facilityId, productIdData[i], quantityData[i], quantityData2[i]);
-      if (stockCard != null) {
-        stockCards.add(stockCard);
-      }
-    }
-
-    return stockCards;
+    return repository.getStockCards(facilityId);
   }
 
   private List<Lot> getTestLots(Long productId) {
