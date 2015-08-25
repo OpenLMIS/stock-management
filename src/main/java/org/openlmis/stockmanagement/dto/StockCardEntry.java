@@ -4,14 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.openlmis.core.domain.BaseModel;
-import org.openlmis.stockmanagement.domain.StockCardLineItemType;
+import org.openlmis.stockmanagement.domain.StockCardEntryType;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
 @JsonIgnoreProperties(ignoreUnknown=true)
-public class StockCardLineItem extends BaseModel {
+public class StockCardEntry extends BaseModel {
 
-  StockCardLineItemType type;
+  StockCardEntryType type;
 
   Long quantity;
 

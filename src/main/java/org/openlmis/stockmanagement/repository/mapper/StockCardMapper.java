@@ -6,7 +6,7 @@ import org.openlmis.core.domain.Product;
 import org.openlmis.stockmanagement.dto.Lot;
 import org.openlmis.stockmanagement.dto.LotOnHand;
 import org.openlmis.stockmanagement.dto.StockCard;
-import org.openlmis.stockmanagement.dto.StockCardLineItem;
+import org.openlmis.stockmanagement.dto.StockCardEntry;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,8 +24,8 @@ public interface StockCardMapper {
           one = @One(select = "org.openlmis.core.repository.mapper.FacilityMapper.getById")),
       @Result(property = "product", column = "productId", javaType = Product.class,
           one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
-      @Result(property = "lineItems", column = "id", javaType = List.class,
-          many = @Many(select = "getLineItems")),
+      @Result(property = "entries", column = "id", javaType = List.class,
+          many = @Many(select = "getEntries")),
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
       many = @Many(select = "getLotsOnHand"))
   })
@@ -41,8 +41,8 @@ public interface StockCardMapper {
           one = @One(select = "org.openlmis.core.repository.mapper.FacilityMapper.getById")),
       @Result(property = "product", column = "productId", javaType = Product.class,
           one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
-      @Result(property = "lineItems", column = "id", javaType = List.class,
-          many = @Many(select = "getLineItems")),
+      @Result(property = "entries", column = "id", javaType = List.class,
+          many = @Many(select = "getEntries")),
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
           many = @Many(select = "getLotsOnHand"))
   })
@@ -55,18 +55,18 @@ public interface StockCardMapper {
       @Result(property = "id", column = "id"),
       @Result(property = "product", column = "productId", javaType = Product.class,
           one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
-      @Result(property = "lineItems", column = "id", javaType = List.class,
-          many = @Many(select = "getLineItems")),
+      @Result(property = "entries", column = "id", javaType = List.class,
+          many = @Many(select = "getEntries")),
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
           many = @Many(select = "getLotsOnHand"))
   })
   List<StockCard> getAllByFacility(@Param("facilityId")Long facilityId);
 
   @Select("SELECT *" +
-      " FROM stock_card_line_items" +
+      " FROM stock_card_entries" +
       " WHERE stockcardid = #{stockCardId}" +
       " ORDER BY createddate DESC")
-  List<StockCardLineItem> getLineItems(@Param("stockCardId")Long stockCardId);
+  List<StockCardEntry> getEntries(@Param("stockCardId")Long stockCardId);
 
   @Select("SELECT *" +
       " FROM lots_on_hand" +

@@ -32,7 +32,7 @@ public class StockCard extends BaseModel {
 
   String notes;
 
-  List<StockCardLineItem> lineItems;
+  List<StockCardEntry> entries;
 
   List<LotOnHand> lotsOnHand;
 }

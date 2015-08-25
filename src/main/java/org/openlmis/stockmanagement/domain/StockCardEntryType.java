@@ -1,6 +1,6 @@
 package org.openlmis.stockmanagement.domain;
 
-public enum StockCardLineItemType {
+public enum StockCardEntryType {
   DEBIT,
   CREDIT,
   ADJUSTMENT

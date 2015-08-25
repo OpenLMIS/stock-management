@@ -15,7 +15,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import org.openlmis.stockmanagement.dto.Lot;
 import org.openlmis.stockmanagement.dto.StockCard;
-import org.openlmis.stockmanagement.dto.StockCardLineItem;
+import org.openlmis.stockmanagement.dto.StockCardEntry;
 import org.openlmis.stockmanagement.service.StockCardService;
 import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.core.web.controller.BaseController;
@@ -66,12 +66,12 @@ public class StockCardController extends BaseController
     @ApiOperation(value = "Get information about the stock card for the specified facility and product.",
             notes = "(This endpoint is not yet ready for use.)")
     public ResponseEntity getStockCard(@PathVariable Long facilityId, @PathVariable Long productId,
-                                       @RequestParam(value = "lineItems", defaultValue = "1")Integer lineItems)
+                                       @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
         StockCard stockCard = service.getStockCard(facilityId, productId);
 
         if (stockCard != null) {
-            filterLineItems(stockCard, lineItems);
+            filterEntries(stockCard, entries);
             return OpenLmisResponse.response(stockCard);
         }
         else {
@@ -83,12 +83,12 @@ public class StockCardController extends BaseController
     @ApiOperation(value = "Get information about the stock card for the specified facility.",
             notes = "(This endpoint is not yet ready for use.)")
     public ResponseEntity getStockCardById(@PathVariable Long facilityId, @PathVariable Long stockCardId,
-                                           @RequestParam(value = "lineItems", defaultValue = "1")Integer lineItems)
+                                           @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
         StockCard stockCard = service.getStockCardById(facilityId, stockCardId);
 
         if (stockCard != null) {
-            filterLineItems(stockCard, lineItems);
+            filterEntries(stockCard, entries);
             return OpenLmisResponse.response(stockCard);
         }
         else {
@@ -100,7 +100,7 @@ public class StockCardController extends BaseController
     @ApiOperation(value = "Get information about all stock cards for the specified facility.",
             notes = "(This endpoint is not yet ready for use.)")
     public ResponseEntity getStockCards(@PathVariable Long facilityId,
-                                        @RequestParam(value = "lineItems", defaultValue = "1")Integer lineItems,
+                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries,
                                         @RequestParam(value = "countOnly", defaultValue = "false")Boolean countOnly)
     {
         List<StockCard> stockCards = service.getStockCards(facilityId);
@@ -111,7 +111,7 @@ public class StockCardController extends BaseController
 
         if (stockCards != null) {
             for (StockCard stockCard : stockCards) {
-                filterLineItems(stockCard, lineItems);
+                filterEntries(stockCard, entries);
             }
             return OpenLmisResponse.response("stockCards", stockCards);
         }
@@ -120,13 +120,13 @@ public class StockCardController extends BaseController
         }
     }
 
-    private void filterLineItems(StockCard stockCard, Integer lineItemCount) {
-        List<StockCardLineItem> lineItems = stockCard.getLineItems();
-        if (lineItems != null) {
-            if (lineItemCount < 0) {
-                stockCard.setLineItems(lineItems.subList(0, 1));
-            } else if (lineItemCount < lineItems.size()) {
-                stockCard.setLineItems(lineItems.subList(0, lineItemCount));
+    private void filterEntries(StockCard stockCard, Integer entryCount) {
+        List<StockCardEntry> entries = stockCard.getEntries();
+        if (entries != null) {
+            if (entryCount < 0) {
+                stockCard.setEntries(entries.subList(0, 1));
+            } else if (entryCount < entries.size()) {
+                stockCard.setEntries(entries.subList(0, entryCount));
             }
         }
     }
