@@ -52,8 +52,8 @@ public class StockCardService {
     return repository.getStockCard(facilityId, productId);
   }
 
-  public StockCard getStockCardById(Long stockCardId) {
-    return repository.getStockCardById(stockCardId);
+  public StockCard getStockCardById(Long facilityId, Long stockCardId) {
+    return repository.getStockCardById(facilityId, stockCardId);
   }
 
   public List<StockCard> getStockCards(Long facilityId) {

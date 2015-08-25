@@ -85,7 +85,7 @@ public class StockCardController extends BaseController
     public ResponseEntity getStockCardById(@PathVariable Long facilityId, @PathVariable Long stockCardId,
                                            @RequestParam(value = "lineItems", defaultValue = "1")Integer lineItems)
     {
-        StockCard stockCard = service.getStockCardById(stockCardId);
+        StockCard stockCard = service.getStockCardById(facilityId, stockCardId);
 
         if (stockCard != null) {
             filterLineItems(stockCard, lineItems);

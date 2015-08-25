@@ -33,7 +33,8 @@ public interface StockCardMapper {
 
   @Select("SELECT *" +
       " FROM stock_cards" +
-      " WHERE id = #{id}")
+      " WHERE facilityid = #{facilityId}" +
+      "   AND id = #{id}")
   @Results({
       @Result(property = "id", column = "id"),
       @Result(property = "facility", column = "facilityId", javaType = Facility.class,
@@ -45,7 +46,7 @@ public interface StockCardMapper {
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
           many = @Many(select = "getLotsOnHand"))
   })
-  StockCard getById(@Param("id")Long id);
+  StockCard getByFacilityAndId(@Param("facilityId")Long facilityId, @Param("id")Long id);
 
   @Select("SELECT *" +
       " FROM stock_cards" +
