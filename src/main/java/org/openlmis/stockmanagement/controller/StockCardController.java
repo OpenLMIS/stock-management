@@ -13,7 +13,6 @@ package org.openlmis.stockmanagement.controller;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import org.openlmis.stockmanagement.dto.Lot;
 import org.openlmis.stockmanagement.dto.StockCard;
 import org.openlmis.stockmanagement.dto.StockCardEntry;
 import org.openlmis.stockmanagement.service.StockCardService;
@@ -46,25 +45,10 @@ public class StockCardController extends BaseController
 
     //TODO: Determine what the permissions associated with @PreAuthorize should be. (MANAGE_PROGRAM_PRODUCT, below, is just a placeholder).
 
-    @RequestMapping(value = "products/{productId}/lots", method = GET, headers = ACCEPT_JSON)
-    @ApiOperation(value = "Get information about all lots (batches) for a specified product.",
-            notes = "(This endpoint is not yet ready for use.) <p /> Note that the products property will always be an object with an ID value. Optionally, it may be expanded to include all of the product's other properties (and associated values) as well. To specify that such an expansion should occur, add \"?expand=product\" to the query parameter. For example: <p> /api/2/lots/{lotId}?expand=product")
-    public ResponseEntity getLots(@PathVariable Long productId,
-                                  @RequestParam(value = "expand", required = false) String expand)
-    {
-        boolean expandProduct = (expand != null && expand.contains("product"));
-        List<Lot> lots = service.getLots(productId);
-
-        if (lots != null) {
-            return OpenLmisResponse.response(lots);
-        } else {
-            return OpenLmisResponse.error("The specified lots do not exist." , HttpStatus.NOT_FOUND);
-        }
-    }
-
     @RequestMapping(value = "facilities/{facilityId}/products/{productId}/stockCard", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about the stock card for the specified facility and product.",
-            notes = "(This endpoint is not yet ready for use.)")
+            notes = "Gets stock card information, by facility and product. By default, returns most recent entry. " +
+                "Entries number can be specified to get more than one.")
     public ResponseEntity getStockCard(@PathVariable Long facilityId, @PathVariable Long productId,
                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
@@ -80,8 +64,10 @@ public class StockCardController extends BaseController
     }
 
     @RequestMapping(value = "facilities/{facilityId}/stockCards/{stockCardId}", method = GET, headers = ACCEPT_JSON)
-    @ApiOperation(value = "Get information about the stock card for the specified facility.",
-            notes = "(This endpoint is not yet ready for use.)")
+    @ApiOperation(value = "Get information about the specified stock card for the specified facility.",
+            notes = "Gets stock card information, by facility and stock card id. If facility does not have specified " +
+                "stock card id, returns 404 NOT FOUND. By default, returns most recent entry. Entries number can be " +
+                "specified to get more than one.")
     public ResponseEntity getStockCardById(@PathVariable Long facilityId, @PathVariable Long stockCardId,
                                            @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
@@ -98,7 +84,9 @@ public class StockCardController extends BaseController
 
     @RequestMapping(value = "facilities/{facilityId}/stockCards", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about all stock cards for the specified facility.",
-            notes = "(This endpoint is not yet ready for use.)")
+            notes = "Gets all stock card information, by facility. By default, returns most recent entry. Entries " +
+                "number can be specified to get more than one. Can also specify countOnly boolean to only return the " +
+                "number of stock cards at the facility.")
     public ResponseEntity getStockCards(@PathVariable Long facilityId,
                                         @RequestParam(value = "entries", defaultValue = "1")Integer entries,
                                         @RequestParam(value = "countOnly", defaultValue = "false")Boolean countOnly)

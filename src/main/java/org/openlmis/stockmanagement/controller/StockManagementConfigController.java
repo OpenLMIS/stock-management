@@ -3,7 +3,7 @@ package org.openlmis.stockmanagement.controller;
 
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
-import org.openlmis.core.dto.StockAdjustmentReason;
+import org.openlmis.core.domain.StockAdjustmentReason;
 import org.openlmis.core.service.StockAdjustmentReasonService;
 import org.openlmis.core.web.controller.BaseController;
 import org.openlmis.core.web.OpenLmisResponse;
@@ -27,8 +27,10 @@ public class StockManagementConfigController extends BaseController {
   StockAdjustmentReasonService service;
 
   @RequestMapping(value = "adjustmentReasons", method = GET, headers = ACCEPT_JSON)
-  @ApiOperation(value = "Get information about all stock management adjustment reasons from the system.",
-      notes = "(This endpoint is not yet ready for use.)")
+  @ApiOperation(value = "Get information about all stock adjustment reasons from the system.",
+      notes = "Gets stock adjustment reasons from the system. Can be specified by program, or returns a default list" +
+          " if program is not specified. Additive boolean can be specified to only get positive or negative reasons," +
+          " otherwise return all.")
   public ResponseEntity getAdjustmentReasons(@RequestParam(value = "additive", required = false) Boolean additive,
                                              @RequestParam(value = "programId", required = false) Long programId)
   {
