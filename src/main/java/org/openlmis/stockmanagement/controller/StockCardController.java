@@ -13,8 +13,8 @@ package org.openlmis.stockmanagement.controller;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import org.openlmis.stockmanagement.dto.StockCard;
-import org.openlmis.stockmanagement.dto.StockCardEntry;
+import org.openlmis.stockmanagement.domain.StockCard;
+import org.openlmis.stockmanagement.domain.StockCardEntry;
 import org.openlmis.stockmanagement.service.StockCardService;
 import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.core.web.controller.BaseController;

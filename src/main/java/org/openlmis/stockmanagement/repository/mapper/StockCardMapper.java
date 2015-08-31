@@ -3,10 +3,10 @@ package org.openlmis.stockmanagement.repository.mapper;
 import org.apache.ibatis.annotations.*;
 import org.openlmis.core.domain.Facility;
 import org.openlmis.core.domain.Product;
-import org.openlmis.stockmanagement.dto.Lot;
-import org.openlmis.stockmanagement.dto.LotOnHand;
-import org.openlmis.stockmanagement.dto.StockCard;
-import org.openlmis.stockmanagement.dto.StockCardEntry;
+import org.openlmis.stockmanagement.domain.Lot;
+import org.openlmis.stockmanagement.domain.LotOnHand;
+import org.openlmis.stockmanagement.domain.StockCard;
+import org.openlmis.stockmanagement.domain.StockCardEntry;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

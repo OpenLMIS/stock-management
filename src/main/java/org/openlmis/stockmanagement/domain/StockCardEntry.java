@@ -1,4 +1,4 @@
-package org.openlmis.stockmanagement.dto;
+package org.openlmis.stockmanagement.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

@@ -2,7 +2,7 @@ package org.openlmis.stockmanagement.repository.mapper;
 
 import org.apache.ibatis.annotations.*;
 import org.openlmis.core.domain.Product;
-import org.openlmis.stockmanagement.dto.Lot;
+import org.openlmis.stockmanagement.domain.Lot;
 import org.springframework.stereotype.Repository;
 
 @Repository

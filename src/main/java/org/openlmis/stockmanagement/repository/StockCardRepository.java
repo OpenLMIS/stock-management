@@ -1,7 +1,7 @@
 package org.openlmis.stockmanagement.repository;
 
 import lombok.NoArgsConstructor;
-import org.openlmis.stockmanagement.dto.StockCard;
+import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.repository.mapper.StockCardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
