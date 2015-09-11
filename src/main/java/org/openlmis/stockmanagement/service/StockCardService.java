@@ -58,6 +58,10 @@ public class StockCardService {
     return repository.getStockCards(facilityId);
   }
 
+  public List<StockCard> getStockCards(Long facilityId, Long programId) {
+    return repository.getStockCards(facilityId, programId);
+  }
+
   private List<Lot> getTestLots(Long productId) {
     List<Lot> lots = new ArrayList<>();
     for (int i = 1; i <= 5; i++) {

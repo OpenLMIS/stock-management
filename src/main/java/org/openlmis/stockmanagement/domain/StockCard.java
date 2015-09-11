@@ -26,6 +26,11 @@ public class StockCard extends BaseModel {
 
   Long totalQuantityOnHand;
 
+  Integer overriddenisa;
+  Integer maxmonthsofstock;
+  Double minmonthsofstock;
+  Double eop;
+
   @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
   @JsonDeserialize(using=DateDeserializer.class)
   Date effectiveDate;

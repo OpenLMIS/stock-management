@@ -62,6 +62,23 @@ public interface StockCardMapper {
   })
   List<StockCard> getAllByFacility(@Param("facilityId")Long facilityId);
 
+
+    @Select("SELECT *" +
+            " FROM vw_stock_cards" +
+            " WHERE facilityid = #{facilityId}" +
+            " AND programid = #{programId}")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "product", column = "productId", javaType = Product.class,
+                    one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
+            @Result(property = "entries", column = "id", javaType = List.class,
+                    many = @Many(select = "getEntries")),
+            @Result(property = "lotsOnHand", column = "id", javaType = List.class,
+                    many = @Many(select = "getLotsOnHand"))
+    })
+  List<StockCard> getAllByFacilityAndProgram(@Param("facilityId")Long facilityId, @Param("programId")Long programId);
+
+
   @Select("SELECT *" +
       " FROM stock_card_entries" +
       " WHERE stockcardid = #{stockCardId}" +

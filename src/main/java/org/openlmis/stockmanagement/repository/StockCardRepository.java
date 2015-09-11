@@ -26,4 +26,8 @@ public class StockCardRepository {
   public List<StockCard> getStockCards(Long facilityId) {
     return mapper.getAllByFacility(facilityId);
   }
+
+  public List<StockCard> getStockCards(Long facilityId, Long programId) {
+    return mapper.getAllByFacilityAndProgram(facilityId, programId);
+  }
 }

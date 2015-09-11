@@ -53,14 +53,7 @@ public class StockCardController extends BaseController
                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
         StockCard stockCard = service.getStockCard(facilityId, productId);
-
-        if (stockCard != null) {
-            filterEntries(stockCard, entries);
-            return OpenLmisResponse.response(stockCard);
-        }
-        else {
-            return OpenLmisResponse.error("The specified stock card does not exist." , HttpStatus.NOT_FOUND);
-        }
+        return getResponse(stockCard, entries);
     }
 
     @RequestMapping(value = "facilities/{facilityId}/stockCards/{stockCardId}", method = GET, headers = ACCEPT_JSON)
@@ -72,14 +65,7 @@ public class StockCardController extends BaseController
                                            @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
         StockCard stockCard = service.getStockCardById(facilityId, stockCardId);
-
-        if (stockCard != null) {
-            filterEntries(stockCard, entries);
-            return OpenLmisResponse.response(stockCard);
-        }
-        else {
-            return OpenLmisResponse.error("The specified stock card does not exist." , HttpStatus.NOT_FOUND);
-        }
+        return getResponse(stockCard, entries);
     }
 
     @RequestMapping(value = "facilities/{facilityId}/stockCards", method = GET, headers = ACCEPT_JSON)
@@ -92,20 +78,57 @@ public class StockCardController extends BaseController
                                         @RequestParam(value = "countOnly", defaultValue = "false")Boolean countOnly)
     {
         List<StockCard> stockCards = service.getStockCards(facilityId);
+        return getResponse(stockCards, entries, countOnly);
+    }
 
-        if (countOnly) {
+    @RequestMapping(value = "facilities/{facilityId}/programs/{programId}/stockCards", method = GET, headers = ACCEPT_JSON)
+    @ApiOperation(value = "Get information about all stock cards for the specified program at the specified facility.",
+            notes = "By default, returns only the most recent entry on each stock card. An entry number " +
+                    "may be specified to retrieve more than one. Additionally, users may specify countOnly boolean to only return the " +
+                    "number of stock cards at the facility.")
+    public ResponseEntity getStockCards(@PathVariable Long facilityId,
+                                        @PathVariable Long programId,
+                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries,
+                                        @RequestParam(value = "countOnly", defaultValue = "false")Boolean countOnly)
+    {
+
+        List<StockCard> stockCards = service.getStockCards(facilityId, programId);
+        return getResponse(stockCards, entries, countOnly);
+    }
+
+    private ResponseEntity getResponse(List<StockCard> stockCards, Integer entries, Boolean countOnly)
+    {
+        if (stockCards == null)
+            return getNotFoundResponse();
+
+        else if (countOnly) {
             return OpenLmisResponse.response("count", stockCards.size());
         }
 
-        if (stockCards != null) {
+        else {
             for (StockCard stockCard : stockCards) {
                 filterEntries(stockCard, entries);
             }
             return OpenLmisResponse.response("stockCards", stockCards);
         }
-        else {
-            return OpenLmisResponse.error("The specified stock cards do not exist." , HttpStatus.NOT_FOUND);
+    }
+
+    private ResponseEntity getResponse(StockCard stockCard, Integer entries)
+    {
+        if (stockCard == null)
+        {
+            return getNotFoundResponse();
         }
+
+        else {
+            filterEntries(stockCard, entries);
+            return OpenLmisResponse.response(stockCard);
+        }
+    }
+
+    private ResponseEntity getNotFoundResponse()
+    {
+        return OpenLmisResponse.error("The specified stock card(s) do not exist." , HttpStatus.NOT_FOUND);
     }
 
     private void filterEntries(StockCard stockCard, Integer entryCount) {
