@@ -14,6 +14,27 @@ import java.util.List;
 @Repository
 public interface StockCardMapper {
 
+  @Insert("INSERT INTO stock_cards (facilityId" +
+      ", productId" +
+      ", totalQuantityOnHand" +
+      ", effectiveDate" +
+      ", notes" +
+      ", createdBy" +
+      ", createdDate" +
+      ", modifiedBy" +
+      ", modifiedDate" +
+      ") VALUES (#{facility.id}" +
+      ", #{product.id}" +
+      ", #{totalQuantityOnHand}" +
+      ", #{effectiveDate}" +
+      ", #{notes}" +
+      ", #{createdBy}" +
+      ", NOW()" +
+      ", #{modifiedBy}" +
+      ", NOW() )")
+  @Options(useGeneratedKeys = true)
+  void insertStockCard(StockCard card);
+
   @Select("SELECT *" +
       " FROM stock_cards" +
       " WHERE facilityid = #{facilityId}" +
@@ -76,4 +97,54 @@ public interface StockCardMapper {
           one = @One(select = "org.openlmis.stockmanagement.repository.mapper.LotMapper.getById"))
   })
   List<LotOnHand> getLotsOnHand(@Param("stockCardId")Long stockCardId);
+
+  @Insert("INSERT INTO stock_cards (facilityId" +
+      ", productId" +
+      ", totalQuantityOnHand" +
+      ", effectiveDate" +
+      ", notes" +
+      ", createdBy" +
+      ", createdDate" +
+      ", modifiedBy" +
+      ", modifiedDate" +
+      ") VALUES ( #{facility.id}" +
+      ", #{product.id}" +
+      ", #{totalQuantityOnHand}" +
+      ", NOW()" +
+      ", #{notes}" +
+      ", #{createdBy}" +
+      ", NOW()" +
+      ", #{modifiedBy}" +
+      ", NOW() )" )
+  @Options(useGeneratedKeys = true)
+  int insert(StockCard card);
+
+  //TODO:  add movement id, lot id, adjustment reason, reference number
+  @Insert("INSERT INTO stock_card_entries (stockcardid" +
+      ", lotonhandid" +
+      ", type" +
+      ", quantity" +
+      ", notes" +
+      ", adjustmentType" +
+      ", createdBy" +
+      ", createdDate" +
+      ", modifiedBy" +
+      ", modifiedDate)" +
+      " VALUES ( #{stockCard.id}" +
+      ", null" +
+      ", #{type}" +
+      ", #{quantity}" +
+      ", #{notes}" +
+      ", #{adjustmentReason.name}" +
+      ", #{createdBy}" +
+      ", NOW()" +
+      ", #{modifiedBy}" +
+      ", NOW() )")
+  @Options(useGeneratedKeys = true)
+  int insertEntry(StockCardEntry entry);
+
+  @Update("UPDATE stock_cards " +
+      "SET totalQuantityOnHand = #{totalQuantityOnHand}" +
+      "WHERE id = #{id}")
+  int update(StockCard card);
 }
