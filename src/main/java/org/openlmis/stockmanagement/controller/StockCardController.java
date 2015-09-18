@@ -95,7 +95,7 @@ public class StockCardController extends BaseController
     public ResponseEntity getStockCard(@PathVariable Long facilityId, @PathVariable Long productId,
                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
-        StockCard stockCard = stockCardRepository.getOrCreateStockCard(facilityId, productId);
+        StockCard stockCard = stockCardRepository.getStockCardByFacilityAndProduct(facilityId, productId);
 
         if (stockCard != null) {
             filterEntries(stockCard, entries);
