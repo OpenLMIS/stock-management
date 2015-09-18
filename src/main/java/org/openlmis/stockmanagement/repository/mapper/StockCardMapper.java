@@ -14,27 +14,6 @@ import java.util.List;
 @Repository
 public interface StockCardMapper {
 
-  @Insert("INSERT INTO stock_cards (facilityId" +
-      ", productId" +
-      ", totalQuantityOnHand" +
-      ", effectiveDate" +
-      ", notes" +
-      ", createdBy" +
-      ", createdDate" +
-      ", modifiedBy" +
-      ", modifiedDate" +
-      ") VALUES (#{facility.id}" +
-      ", #{product.id}" +
-      ", #{totalQuantityOnHand}" +
-      ", #{effectiveDate}" +
-      ", #{notes}" +
-      ", #{createdBy}" +
-      ", NOW()" +
-      ", #{modifiedBy}" +
-      ", NOW() )")
-  @Options(useGeneratedKeys = true)
-  void insertStockCard(StockCard card);
-
   @Select("SELECT *" +
       " FROM stock_cards" +
       " WHERE facilityid = #{facilityId}" +
@@ -119,7 +98,7 @@ public interface StockCardMapper {
   @Options(useGeneratedKeys = true)
   int insert(StockCard card);
 
-  //TODO:  add movement id, lot id, adjustment reason, reference number
+  //TODO:  add movement id, lot id, reference number
   @Insert("INSERT INTO stock_card_entries (stockcardid" +
       ", lotonhandid" +
       ", type" +

@@ -67,7 +67,7 @@ public class StockCardMapperIT {
     defaultCard.setProduct(defaultProduct);
     defaultCard.setTotalQuantityOnHand(0L);
 
-    mapper.insertStockCard(defaultCard);
+    mapper.insert(defaultCard);
   }
 
   @Test

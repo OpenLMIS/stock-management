@@ -152,7 +152,7 @@ public class StockCardController extends BaseController
                                       @RequestBody(required=true) List<StockEvent> events,
                                       HttpServletRequest request) {
 
-        // verify we have something to do and facilility exists
+        // verify we have something to do and facility exists
         if(null == events || 0 >= events.size()) return OpenLmisResponse.success("Nothing to do");
         if(null == facilityRepository.getById(facilityId))
             return OpenLmisResponse.error(messageService.message("error.facility.unknown"), HttpStatus.BAD_REQUEST);

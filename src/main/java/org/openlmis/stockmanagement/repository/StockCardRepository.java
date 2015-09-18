@@ -44,7 +44,7 @@ public class StockCardRepository {
       Objects.requireNonNull(facility);
       Objects.requireNonNull(product);
       card = StockCard.createZeroedStockCard(facility, product);
-      mapper.insertStockCard(card);
+      mapper.insert(card);
     }
 
     Objects.requireNonNull(card);
