@@ -20,7 +20,5 @@
     <context:component-scan base-package="org.openlmis.stockmanagement.repository.mapper"/>
 
     <import resource="classpath*:test-applicationContext-core.xml"/>
-    <!--<import resource="classpath*:applicationContext-authentication.xml"/>-->
-    <!--<import resource="classpath:test-applicationContext-db.xml"/>-->
     <tx:annotation-driven proxy-target-class="true"/>
 </beans>
