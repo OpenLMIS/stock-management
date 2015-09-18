@@ -25,9 +25,12 @@ apply plugin: 'cobertura'
 dependencies {
 
     compile 'com.wordnik:swagger-annotations:1.3.12',
-            project(':modules:core')
+            project(':modules:db'),
+            project(':modules:core'),
+            project(':modules:authentication')
 
-    testCompile project(path: ':modules:core', configuration: 'testFixtures')
+    testCompile project(path: ':modules:core', configuration: 'testFixtures'),
+            project(path: ':modules:db')
 
 
     configurations {

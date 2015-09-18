@@ -6,33 +6,57 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.openlmis.core.domain.BaseModel;
 import org.openlmis.core.domain.Facility;
 import org.openlmis.core.domain.Product;
 import org.openlmis.core.serializer.DateDeserializer;
+import org.openlmis.stockmanagement.dto.StockEvent;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper=false)
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class StockCard extends BaseModel {
 
   @JsonIgnore
-  Facility facility;
+  private Facility facility;
 
-  Product product;
+  private Product product;
 
-  Long totalQuantityOnHand;
+  private Long totalQuantityOnHand;
 
   @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
   @JsonDeserialize(using=DateDeserializer.class)
-  Date effectiveDate;
+  private Date effectiveDate;
 
-  String notes;
+  private String notes;
 
-  List<StockCardEntry> entries;
+  private List<StockCardEntry> entries;
 
-  List<LotOnHand> lotsOnHand;
+  private List<LotOnHand> lotsOnHand;
+
+  private StockCard(Facility facility, Product product) {
+    Objects.requireNonNull(facility);
+    Objects.requireNonNull(product);
+    this.facility = facility;
+    this.product = product;
+    this.totalQuantityOnHand = 0L;
+    this.effectiveDate = new Date();
+    this.notes = "";
+    this.entries = null;
+    this.lotsOnHand = null;
+  }
+
+  public void addToTotalQuantityOnHand(long quantity) {
+    this.totalQuantityOnHand += quantity;
+  }
+
+  public static final StockCard createZeroedStockCard(Facility facility, Product product) {
+    return new StockCard(facility, product);
+  }
 }
