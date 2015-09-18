@@ -15,9 +15,11 @@ import org.openlmis.core.domain.*;
 import org.openlmis.core.service.*;
 import org.openlmis.stockmanagement.domain.Lot;
 import org.openlmis.stockmanagement.domain.StockCard;
+import org.openlmis.stockmanagement.domain.StockCardEntry;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -46,8 +48,8 @@ public class StockCardService {
     return getTestLots(productId);
   }
 
-  public StockCard getStockCard(Long facilityId, Long productId) {
-    return repository.getStockCard(facilityId, productId);
+  public StockCard getOrCreateStockCard(Long facilityId, Long productId) {
+    return repository.getOrCreateStockCard(facilityId, productId);
   }
 
   public StockCard getStockCardById(Long facilityId, Long stockCardId) {
@@ -56,6 +58,19 @@ public class StockCardService {
 
   public List<StockCard> getStockCards(Long facilityId) {
     return repository.getStockCards(facilityId);
+  }
+
+  @Transactional
+  public void addStockCardEntry(StockCardEntry entry) {
+    StockCard card = entry.getStockCard();
+    card.addToTotalQuantityOnHand(entry.getQuantity());
+    repository.persistStockCardEntry(entry);
+    repository.updateStockCard(card);
+  }
+
+  @Transactional
+  public void addStockCardEntries(List<StockCardEntry> entries) {
+    for(StockCardEntry entry : entries) addStockCardEntry(entry);
   }
 
   private List<Lot> getTestLots(Long productId) {
