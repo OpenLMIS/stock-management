@@ -51,6 +51,16 @@ public class StockCardRepository {
     return card;
   }
 
+  /**
+   * Gets a stock card by facility id and product id
+   * @param facilityId the id of the facility
+   * @param productId the id of the product
+   * @return the unique stock card, or null if stock card, facility, or product do not exist.
+   */
+  public StockCard getStockCard(long facilityId, long productId) {
+    return mapper.getByFacilityAndProduct(facilityId, productId);
+  }
+
   public StockCard getStockCardById(Long facilityId, Long id) {
     return mapper.getByFacilityAndId(facilityId, id);
   }

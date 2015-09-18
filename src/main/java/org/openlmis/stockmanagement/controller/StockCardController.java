@@ -25,6 +25,7 @@ import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
 import org.openlmis.stockmanagement.domain.StockCardEntryType;
 import org.openlmis.stockmanagement.dto.StockEvent;
+import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.openlmis.stockmanagement.service.StockCardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -63,6 +64,9 @@ public class StockCardController extends BaseController
     private ProductService productService;
 
     @Autowired
+    private StockCardRepository stockCardRepository;
+
+    @Autowired
     private StockAdjustmentReasonRepository stockAdjustmentReasonRepository;
 
     @Autowired
@@ -72,10 +76,12 @@ public class StockCardController extends BaseController
                         FacilityRepository facilityRepository,
                         ProductService productService,
                         StockAdjustmentReasonRepository stockAdjustmentReasonRepository,
+                        StockCardRepository stockCardRepository,
                         StockCardService service) {
         this.messageService = Objects.requireNonNull(messageService);
         this.facilityRepository = Objects.requireNonNull(facilityRepository);
         this.productService = Objects.requireNonNull(productService);
+        this.stockCardRepository = Objects.requireNonNull(stockCardRepository);
         this.stockAdjustmentReasonRepository = Objects.requireNonNull(stockAdjustmentReasonRepository);
         this.service = Objects.requireNonNull(service);
     }
@@ -89,7 +95,7 @@ public class StockCardController extends BaseController
     public ResponseEntity getStockCard(@PathVariable Long facilityId, @PathVariable Long productId,
                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
-        StockCard stockCard = service.getOrCreateStockCard(facilityId, productId);
+        StockCard stockCard = stockCardRepository.getOrCreateStockCard(facilityId, productId);
 
         if (stockCard != null) {
             filterEntries(stockCard, entries);

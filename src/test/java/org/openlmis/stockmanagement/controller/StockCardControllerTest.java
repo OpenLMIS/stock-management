@@ -32,6 +32,7 @@ import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
 import org.openlmis.stockmanagement.domain.StockCardEntryType;
 import org.openlmis.stockmanagement.dto.StockEvent;
+import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.openlmis.stockmanagement.service.StockCardService;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
@@ -66,6 +67,9 @@ public class StockCardControllerTest {
   private MessageService messageService;
 
   @Mock
+  private StockCardRepository stockCardRepository;
+
+  @Mock
   private StockAdjustmentReasonRepository stockAdjustmentReasonRepository;
 
   @Mock
@@ -94,6 +98,7 @@ public class StockCardControllerTest {
         facilityRepository,
         productService,
         stockAdjustmentReasonRepository,
+        stockCardRepository,
         service);
   }
 
