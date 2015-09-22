@@ -12,19 +12,19 @@ package org.openlmis.stockmanagement.service;
 
 import lombok.NoArgsConstructor;
 import org.openlmis.core.domain.*;
+import org.openlmis.core.repository.ProductRepository;
 import org.openlmis.core.service.*;
 import org.openlmis.stockmanagement.domain.Lot;
+import org.openlmis.stockmanagement.domain.LotOnHand;
 import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
+import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -42,10 +42,29 @@ public class StockCardService {
   ProductService productService;
 
   @Autowired
+  ProductRepository productRepository;
+
+  @Autowired
+  LotRepository lotRepository;
+
+  @Autowired
   StockCardRepository repository;
 
   public List<Lot> getLots(Long productId) {
     return getTestLots(productId);
+  }
+
+  @Transactional
+  public LotOnHand getOrCreateLotOnHand(Lot lot, StockCard stockCard) {
+    LotOnHand lotOnHand = lotRepository.getLotOnHandByLot(lot);
+    if (null == lotOnHand) {
+      lotOnHand = LotOnHand.createZeroedLotOnHand(lot, stockCard);
+      lotRepository.saveLot(lot);
+      lotRepository.saveLotOnHand(lotOnHand);
+    }
+
+    Objects.requireNonNull(lotOnHand);
+    return lotOnHand;
   }
 
   public StockCard getOrCreateStockCard(Long facilityId, Long productId) {
@@ -63,9 +82,12 @@ public class StockCardService {
   @Transactional
   public void addStockCardEntry(StockCardEntry entry) {
     StockCard card = entry.getStockCard();
+    LotOnHand lotOnHand = entry.getLotOnHand();
     card.addToTotalQuantityOnHand(entry.getQuantity());
+    lotOnHand.addToQuantityOnHand(entry.getQuantity());
     repository.persistStockCardEntry(entry);
     repository.updateStockCard(card);
+    lotRepository.saveLotOnHand(lotOnHand);
   }
 
   @Transactional

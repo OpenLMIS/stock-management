@@ -27,6 +27,8 @@ public class StockCardEntry extends BaseModel {
 
   private StockAdjustmentReason adjustmentReason;
 
+  private LotOnHand lotOnHand;
+
   String notes;
 
   public StockCardEntry(StockCard card, StockCardEntryType type, long quantity) {
