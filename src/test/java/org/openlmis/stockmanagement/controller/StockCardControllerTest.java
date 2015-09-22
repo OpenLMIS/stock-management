@@ -28,10 +28,9 @@ import org.openlmis.core.service.MessageService;
 import org.openlmis.core.service.ProductService;
 import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.db.categories.UnitTests;
-import org.openlmis.stockmanagement.domain.StockCard;
-import org.openlmis.stockmanagement.domain.StockCardEntry;
-import org.openlmis.stockmanagement.domain.StockCardEntryType;
+import org.openlmis.stockmanagement.domain.*;
 import org.openlmis.stockmanagement.dto.StockEvent;
+import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.openlmis.stockmanagement.service.StockCardService;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -43,6 +42,7 @@ import org.springframework.mock.web.MockHttpSession;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static com.natpryce.makeiteasy.MakeItEasy.*;
@@ -73,6 +73,9 @@ public class StockCardControllerTest {
   private StockAdjustmentReasonRepository stockAdjustmentReasonRepository;
 
   @Mock
+  private LotRepository lotRepository;
+
+  @Mock
   private StockCardService service;
 
   private StockCardController controller;
@@ -83,6 +86,15 @@ public class StockCardControllerTest {
   private static final StockCard dummyCard;
   private static final MockHttpServletRequest request = new MockHttpServletRequest();
   private static final MockHttpSession session = new MockHttpSession();
+
+  private long fId;
+  private long pId;
+  private String reasonName;
+  private StockAdjustmentReason reason;
+  private StockEvent event;
+  private long lotId;
+  private Lot lot;
+  private LotOnHand lotOnHand;
 
   static  {
     defaultFacility = make(a(FacilityBuilder.defaultFacility, with(FacilityBuilder.facilityId, 1L)));
@@ -99,7 +111,37 @@ public class StockCardControllerTest {
         productService,
         stockAdjustmentReasonRepository,
         stockCardRepository,
+        lotRepository,
         service);
+  }
+
+  public void setupEvent() {
+    fId = defaultFacility.getId();
+    pId = defaultProduct.getId();
+    reasonName = "dummyReason";
+
+    reason = new StockAdjustmentReason();
+    reason.setAdditive(false);
+    reason.setName(reasonName);
+
+    event = new StockEvent();
+    event.setFacilityId(fId);
+    event.setProductId(pId);
+    event.setReasonName(reasonName);
+    event.setQuantity(10L);
+  }
+
+  public void setupLot() {
+    lot = new Lot();
+    lot.setId(lotId);
+    lot.setProduct(defaultProduct);
+    lot.setLotCode("A1");
+    lot.setManufacturerName("Manu");
+    lot.setManufactureDate(new Date());
+    lot.setExpirationDate(new Date());
+    event.setLot(lot);
+
+    lotOnHand = LotOnHand.createZeroedLotOnHand(lot, dummyCard);
   }
 
   @Test
@@ -124,31 +166,80 @@ public class StockCardControllerTest {
 
   @Test
   public void shouldSucceedWithValidAdjustment() {
-    //setup an event
-    long fId = defaultFacility.getId();
-    long pId = defaultProduct.getId();
-    String reasonName = "dummyReason";
-
-    StockAdjustmentReason reason = new StockAdjustmentReason();
-    reason.setAdditive(false);
-    reason.setName(reasonName);
-
-    StockEvent e = new StockEvent();
-    e.setFacilityId(fId);
-    e.setProductId(pId);
-    e.setReasonName(reasonName);
-    e.setQuantity(10L);
+    setupEvent();
 
     // test
     when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
     when(productService.getById(pId)).thenReturn(defaultProduct);
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
     when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
-    ResponseEntity response = controller.adjustStock(fId, Arrays.asList(e), request);
+    ResponseEntity response = controller.adjustStock(fId, Arrays.asList(event), request);
 
     // verify
-    StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, e.getQuantity() * -1);
+    StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
     entry.setAdjustmentReason(reason);
+    verify(service).addStockCardEntries(Arrays.asList(entry));
+    assertThat(response.getStatusCode(), is(HttpStatus.OK));
+  }
+
+  @Test
+  public void shouldErrorWithInvalidLotId() {
+    setupEvent();
+    lotId = 1;
+    event.setLotId(lotId);
+
+    // test
+    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
+    when(productService.getById(pId)).thenReturn(defaultProduct);
+    when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
+    when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
+    when(lotRepository.getLotOnHandByLot(lotId)).thenReturn(null);
+    ResponseEntity response = controller.adjustStock(fId, Arrays.asList(event), request);
+
+    // verify
+    assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  public void shouldSucceedWithValidLotId() {
+    lotId = 1;
+    setupEvent();
+    setupLot();
+    event.setLotId(lotId);
+
+    // test
+    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
+    when(productService.getById(pId)).thenReturn(defaultProduct);
+    when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
+    when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
+    when(lotRepository.getLotOnHandByLot(lotId)).thenReturn(lotOnHand);
+    ResponseEntity response = controller.adjustStock(fId, Arrays.asList(event), request);
+
+    // verify
+    StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
+    entry.setAdjustmentReason(reason);
+    entry.setLotOnHand(lotOnHand);
+    verify(service).addStockCardEntries(Arrays.asList(entry));
+    assertThat(response.getStatusCode(), is(HttpStatus.OK));
+  }
+
+  @Test
+  public void shouldSucceedWithValidLotObject() {
+    setupEvent();
+    setupLot();
+
+    // test
+    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
+    when(productService.getById(pId)).thenReturn(defaultProduct);
+    when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
+    when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
+    when(service.getOrCreateLotOnHand(lot, dummyCard)).thenReturn(lotOnHand);
+    ResponseEntity response = controller.adjustStock(fId, Arrays.asList(event), request);
+
+    // verify
+    StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
+    entry.setAdjustmentReason(reason);
+    entry.setLotOnHand(lotOnHand);
     verify(service).addStockCardEntries(Arrays.asList(entry));
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
