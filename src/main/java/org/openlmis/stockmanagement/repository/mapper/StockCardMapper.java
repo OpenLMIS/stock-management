@@ -106,7 +106,7 @@ public interface StockCardMapper {
   @Options(useGeneratedKeys = true)
   int insert(StockCard card);
 
-  //TODO:  add movement id, lot id, reference number
+  //TODO:  add movement id, reference number
   @Insert("INSERT INTO stock_card_entries (stockcardid" +
       ", lotonhandid" +
       ", type" +
@@ -118,7 +118,7 @@ public interface StockCardMapper {
       ", modifiedBy" +
       ", modifiedDate)" +
       " VALUES ( #{stockCard.id}" +
-      ", null" +
+      ", #{lotOnHand.id}" +
       ", #{type}" +
       ", #{quantity}" +
       ", #{notes}" +
