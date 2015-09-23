@@ -26,7 +26,6 @@ import org.openlmis.core.repository.FacilityRepository;
 import org.openlmis.core.repository.StockAdjustmentReasonRepository;
 import org.openlmis.core.service.MessageService;
 import org.openlmis.core.service.ProductService;
-import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.db.categories.UnitTests;
 import org.openlmis.stockmanagement.domain.*;
 import org.openlmis.stockmanagement.dto.StockEvent;
@@ -40,7 +39,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -149,14 +147,14 @@ public class StockCardControllerTest {
     List<StockEvent> events = Collections.emptyList();
     long facilityId = 1;
 
-    ResponseEntity<OpenLmisResponse> response = controller.adjustStock(facilityId, events, request);
+    ResponseEntity response = controller.adjustStock(facilityId, events, request);
     assertThat(response.getStatusCode(),
         is(HttpStatus.OK));
   }
 
   @Test
   public void shouldErrorWithInvalidStockAdjustment() {
-    List<StockEvent> events = Arrays.asList(new StockEvent());
+    List<StockEvent> events = Collections.singletonList(new StockEvent());
     long facilityId = 1;
 
     ResponseEntity response = controller.adjustStock(facilityId, events, request);
@@ -173,12 +171,12 @@ public class StockCardControllerTest {
     when(productService.getById(pId)).thenReturn(defaultProduct);
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
     when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
-    ResponseEntity response = controller.adjustStock(fId, Arrays.asList(event), request);
+    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
 
     // verify
     StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
     entry.setAdjustmentReason(reason);
-    verify(service).addStockCardEntries(Arrays.asList(entry));
+    verify(service).addStockCardEntries(Collections.singletonList(entry));
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
 
@@ -194,7 +192,7 @@ public class StockCardControllerTest {
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
     when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
     when(lotRepository.getLotOnHandByLot(lotId)).thenReturn(null);
-    ResponseEntity response = controller.adjustStock(fId, Arrays.asList(event), request);
+    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
 
     // verify
     assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
@@ -213,13 +211,13 @@ public class StockCardControllerTest {
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
     when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
     when(lotRepository.getLotOnHandByLot(lotId)).thenReturn(lotOnHand);
-    ResponseEntity response = controller.adjustStock(fId, Arrays.asList(event), request);
+    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
 
     // verify
     StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
     entry.setAdjustmentReason(reason);
     entry.setLotOnHand(lotOnHand);
-    verify(service).addStockCardEntries(Arrays.asList(entry));
+    verify(service).addStockCardEntries(Collections.singletonList(entry));
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
 
@@ -234,13 +232,13 @@ public class StockCardControllerTest {
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
     when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
     when(service.getOrCreateLotOnHand(lot, dummyCard)).thenReturn(lotOnHand);
-    ResponseEntity response = controller.adjustStock(fId, Arrays.asList(event), request);
+    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
 
     // verify
     StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
     entry.setAdjustmentReason(reason);
     entry.setLotOnHand(lotOnHand);
-    verify(service).addStockCardEntries(Arrays.asList(entry));
+    verify(service).addStockCardEntries(Collections.singletonList(entry));
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
 }
