@@ -26,7 +26,7 @@ public interface LotMapper {
   @Results({
       @Result(
           property = "lot", column = "lotId", javaType = Lot.class,
-          one = @One(select = "org.openlmis.core.repository.mapper.LotMapper.getById"))
+          one = @One(select = "org.openlmis.stockmanagement.repository.mapper.LotMapper.getById"))
   })
   LotOnHand getLotOnHandByLot(@Param("lotId")Long lotId);
 
@@ -39,7 +39,7 @@ public interface LotMapper {
   @Results({
       @Result(
           property = "lot", column = "lotId", javaType = Lot.class,
-          one = @One(select = "org.openlmis.core.repository.mapper.LotMapper.getById"))
+          one = @One(select = "org.openlmis.stockmanagement.repository.mapper.LotMapper.getById"))
   })
   LotOnHand getLotOnHandByLot(Lot lot);
 
