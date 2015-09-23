@@ -5,7 +5,6 @@ import org.openlmis.core.domain.Facility;
 import org.openlmis.core.domain.Product;
 import org.openlmis.core.repository.FacilityRepository;
 import org.openlmis.core.repository.ProductRepository;
-import org.openlmis.core.service.FacilityService;
 import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
 import org.openlmis.stockmanagement.repository.mapper.StockCardMapper;

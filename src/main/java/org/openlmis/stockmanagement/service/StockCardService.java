@@ -11,7 +11,6 @@
 package org.openlmis.stockmanagement.service;
 
 import lombok.NoArgsConstructor;
-import org.openlmis.core.domain.*;
 import org.openlmis.core.repository.ProductRepository;
 import org.openlmis.core.service.*;
 import org.openlmis.stockmanagement.domain.Lot;
@@ -39,9 +38,6 @@ public class StockCardService {
   FacilityService facilityService;
 
   @Autowired
-  ProductService productService;
-
-  @Autowired
   ProductRepository productRepository;
 
   @Autowired
@@ -49,10 +45,6 @@ public class StockCardService {
 
   @Autowired
   StockCardRepository repository;
-
-  public List<Lot> getLots(Long productId) {
-    return getTestLots(productId);
-  }
 
   @Transactional
   public LotOnHand getOrCreateLotOnHand(Lot lot, StockCard stockCard) {
@@ -93,31 +85,5 @@ public class StockCardService {
   @Transactional
   public void addStockCardEntries(List<StockCardEntry> entries) {
     for(StockCardEntry entry : entries) addStockCardEntry(entry);
-  }
-
-  private List<Lot> getTestLots(Long productId) {
-    List<Lot> lots = new ArrayList<>();
-    for (int i = 1; i <= 5; i++) {
-      Product product = productService.getById(productId);
-      if (product != null) {
-        Lot lot = new Lot();
-        lot.setId((long) i);
-        lot.setProduct(product);
-        lot.setLotCode("AB-" + i);
-        lot.setManufacturerName("MyManufacturer");
-
-        Date now = new Date();
-        lot.setManufactureDate(now);
-
-        Calendar c = Calendar.getInstance();
-        c.setTime(now);
-        c.add(Calendar.DATE, 365);
-        lot.setExpirationDate(c.getTime());
-
-        lots.add(lot);
-      }
-    }
-
-    return lots;
   }
 }
