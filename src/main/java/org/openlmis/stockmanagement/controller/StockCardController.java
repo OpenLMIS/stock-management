@@ -201,7 +201,7 @@ public class StockCardController extends BaseController
             Long lotId = event.getLotId();
             Lot lotObj = event.getLot();
             if (null != lotId) { // Lot specified by id
-                lotOnHand = lotRepository.getLotOnHandByLot(lotId);
+                lotOnHand = lotRepository.getLotOnHandByStockCardAndLot(card.getId(), lotId);
                 if (null == lotOnHand) {
                     return OpenLmisResponse.error(messageService.message("error.lot.unknown"), HttpStatus.BAD_REQUEST);
                 }

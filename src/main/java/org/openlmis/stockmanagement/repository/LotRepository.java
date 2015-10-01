@@ -14,12 +14,16 @@ public class LotRepository {
   @Autowired
   LotMapper mapper;
 
-  public LotOnHand getLotOnHandByLot(Long lotId) {
-    return mapper.getLotOnHandByLot(lotId);
+  public LotOnHand getLotOnHandByStockCardAndLot(Long stockCardId, Long lotId) {
+    return mapper.getLotOnHandByStockCardAndLot(stockCardId, lotId);
   }
 
-  public LotOnHand getLotOnHandByLot(Lot lot) {
-    return mapper.getLotOnHandByLot(lot);
+  public LotOnHand getLotOnHandByStockCardAndLotObject(Long stockCardId, Lot lot) {
+    return mapper.getLotOnHandByStockCardAndLotObject(stockCardId, lot);
+  }
+
+  public Lot getByObject(Lot lot) {
+    return mapper.getByObject(lot);
   }
 
   public void saveLot(Lot lot) {

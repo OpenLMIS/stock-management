@@ -46,12 +46,26 @@ public class StockCardService {
   @Autowired
   StockCardRepository repository;
 
+  StockCardService(FacilityService facilityService,
+                   ProductRepository productRepository,
+                   LotRepository lotRepository,
+                   StockCardRepository repository) {
+    this.facilityService = Objects.requireNonNull(facilityService);
+    this.productRepository = Objects.requireNonNull(productRepository);
+    this.lotRepository = Objects.requireNonNull(lotRepository);
+    this.repository = Objects.requireNonNull(repository);
+  }
+
   @Transactional
   public LotOnHand getOrCreateLotOnHand(Lot lot, StockCard stockCard) {
-    LotOnHand lotOnHand = lotRepository.getLotOnHandByLot(lot);
+    LotOnHand lotOnHand = lotRepository.getLotOnHandByStockCardAndLotObject(stockCard.getId(), lot);
     if (null == lotOnHand) {
-      lotOnHand = LotOnHand.createZeroedLotOnHand(lot, stockCard);
-      lotRepository.saveLot(lot);
+      Lot l = lotRepository.getByObject(lot);
+      if (null != l) {
+        lotRepository.saveLot(lot);
+        l = lot;
+      }
+      lotOnHand = LotOnHand.createZeroedLotOnHand(l, stockCard);
       lotRepository.saveLotOnHand(lotOnHand);
     }
 
@@ -74,12 +88,16 @@ public class StockCardService {
   @Transactional
   public void addStockCardEntry(StockCardEntry entry) {
     StockCard card = entry.getStockCard();
-    LotOnHand lotOnHand = entry.getLotOnHand();
+
     card.addToTotalQuantityOnHand(entry.getQuantity());
-    lotOnHand.addToQuantityOnHand(entry.getQuantity());
     repository.persistStockCardEntry(entry);
     repository.updateStockCard(card);
-    lotRepository.saveLotOnHand(lotOnHand);
+
+    LotOnHand lotOnHand = entry.getLotOnHand();
+    if (null != lotOnHand) {
+      lotOnHand.addToQuantityOnHand(entry.getQuantity());
+      lotRepository.saveLotOnHand(lotOnHand);
+    }
   }
 
   @Transactional

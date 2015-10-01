@@ -80,7 +80,8 @@ public interface StockCardMapper {
       " FROM lots_on_hand" +
       " WHERE stockcardid = #{stockCardId}")
   @Results({
-      @Result(property = "lot", column = "lotId", javaType = Lot.class,
+      @Result(
+          property = "lot", column = "lotId", javaType = Lot.class,
           one = @One(select = "org.openlmis.stockmanagement.repository.mapper.LotMapper.getById"))
   })
   List<LotOnHand> getLotsOnHand(@Param("stockCardId")Long stockCardId);
@@ -132,6 +133,9 @@ public interface StockCardMapper {
 
   @Update("UPDATE stock_cards " +
       "SET totalQuantityOnHand = #{totalQuantityOnHand}" +
+          ", effectiveDate = NOW()" +
+          ", modifiedBy = #{modifiedBy}" +
+          ", modifiedDate = NOW()" +
       "WHERE id = #{id}")
   int update(StockCard card);
 }
