@@ -7,12 +7,18 @@ import org.openlmis.stockmanagement.repository.mapper.LotMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Component
 @NoArgsConstructor
 public class LotRepository {
 
   @Autowired
   LotMapper mapper;
+
+  LotRepository(LotMapper mapper) {
+    this.mapper = Objects.requireNonNull(mapper);
+  }
 
   public LotOnHand getLotOnHandByStockCardAndLot(Long stockCardId, Long lotId) {
     return mapper.getLotOnHandByStockCardAndLot(stockCardId, lotId);

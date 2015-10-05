@@ -25,7 +25,6 @@ import java.util.Date;
 
 import static com.natpryce.makeiteasy.MakeItEasy.*;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Category(UnitTests.class)
