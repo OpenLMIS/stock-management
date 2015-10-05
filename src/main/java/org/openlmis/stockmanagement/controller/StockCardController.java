@@ -21,10 +21,9 @@ import org.openlmis.core.service.MessageService;
 import org.openlmis.core.service.ProductService;
 import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.core.web.controller.BaseController;
-import org.openlmis.stockmanagement.domain.StockCard;
-import org.openlmis.stockmanagement.domain.StockCardEntry;
-import org.openlmis.stockmanagement.domain.StockCardEntryType;
+import org.openlmis.stockmanagement.domain.*;
 import org.openlmis.stockmanagement.dto.StockEvent;
+import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.openlmis.stockmanagement.service.StockCardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +69,9 @@ public class StockCardController extends BaseController
     private StockAdjustmentReasonRepository stockAdjustmentReasonRepository;
 
     @Autowired
+    private LotRepository lotRepository;
+
+    @Autowired
     private StockCardService service;
 
     StockCardController(MessageService messageService,
@@ -77,12 +79,14 @@ public class StockCardController extends BaseController
                         ProductService productService,
                         StockAdjustmentReasonRepository stockAdjustmentReasonRepository,
                         StockCardRepository stockCardRepository,
+                        LotRepository lotRepository,
                         StockCardService service) {
         this.messageService = Objects.requireNonNull(messageService);
         this.facilityRepository = Objects.requireNonNull(facilityRepository);
         this.productService = Objects.requireNonNull(productService);
         this.stockCardRepository = Objects.requireNonNull(stockCardRepository);
         this.stockAdjustmentReasonRepository = Objects.requireNonNull(stockAdjustmentReasonRepository);
+        this.lotRepository = Objects.requireNonNull(lotRepository);
         this.service = Objects.requireNonNull(service);
     }
 
@@ -192,14 +196,21 @@ public class StockCardController extends BaseController
                 return OpenLmisResponse.error("Unable to adjust stock for facility and product",
                     HttpStatus.BAD_REQUEST);
 
+            // get or create lot, if lot is being used
+            StringBuilder str = new StringBuilder();
+            LotOnHand lotOnHand = getLotOnHand(event, card, str);
+            if (!str.toString().equals("")) {
+                return OpenLmisResponse.error(messageService.message(str.toString()), HttpStatus.BAD_REQUEST);
+            }
+
             // create entry from event
-            //TODO:  adjust quantity from absolute to pos or neg based on adjustment reason
             long quantity = event.getQuantity();
             quantity = reason.getAdditive() ? quantity : quantity * -1;
             StockCardEntry entry = new StockCardEntry(card,
                 StockCardEntryType.ADJUSTMENT,
                 quantity);
             entry.setAdjustmentReason(reason);
+            entry.setLotOnHand(lotOnHand);
             entry.setCreatedBy(userId);
             entry.setModifiedBy(userId);
             entries.add(entry);
@@ -218,5 +229,28 @@ public class StockCardController extends BaseController
                 stockCard.setEntries(entries.subList(0, entryCount));
             }
         }
+    }
+
+    private LotOnHand getLotOnHand(StockEvent event, StockCard card, StringBuilder str) {
+        LotOnHand lotOnHand = null;
+        Long lotId = event.getLotId();
+        Lot lotObj = event.getLot();
+        if (null != lotId) { // Lot specified by id
+            lotOnHand = lotRepository.getLotOnHandByStockCardAndLot(card.getId(), lotId);
+            if (null == lotOnHand) {
+                str.append("error.lot.unknown");
+            }
+        } else if (null != lotObj) { // Lot specified by object
+            if (null == lotObj.getProduct()) {
+                lotObj.setProduct(productService.getById(event.getProductId()));
+            }
+            if (!lotObj.isValid()) {
+                str.append("error.lot.invalid");
+            }
+            //TODO:  this call might create a lot if it doesn't exist, need to implement permission check
+            lotOnHand = service.getOrCreateLotOnHand(lotObj, card);
+        }
+
+        return lotOnHand;
     }
 }

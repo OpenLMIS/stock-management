@@ -72,7 +72,8 @@ public interface StockCardMapper {
       " FROM lots_on_hand" +
       " WHERE stockcardid = #{stockCardId}")
   @Results({
-      @Result(property = "lot", column = "lotId", javaType = Lot.class,
+      @Result(
+          property = "lot", column = "lotId", javaType = Lot.class,
           one = @One(select = "org.openlmis.stockmanagement.repository.mapper.LotMapper.getById"))
   })
   List<LotOnHand> getLotsOnHand(@Param("stockCardId")Long stockCardId);
@@ -98,7 +99,7 @@ public interface StockCardMapper {
   @Options(useGeneratedKeys = true)
   int insert(StockCard card);
 
-  //TODO:  add movement id, lot id, reference number
+  //TODO:  add movement id, reference number
   @Insert("INSERT INTO stock_card_entries (stockcardid" +
       ", lotonhandid" +
       ", type" +
@@ -110,7 +111,7 @@ public interface StockCardMapper {
       ", modifiedBy" +
       ", modifiedDate)" +
       " VALUES ( #{stockCard.id}" +
-      ", null" +
+      ", #{lotOnHand.id}" +
       ", #{type}" +
       ", #{quantity}" +
       ", #{notes}" +
@@ -124,6 +125,9 @@ public interface StockCardMapper {
 
   @Update("UPDATE stock_cards " +
       "SET totalQuantityOnHand = #{totalQuantityOnHand}" +
+          ", effectiveDate = NOW()" +
+          ", modifiedBy = #{modifiedBy}" +
+          ", modifiedDate = NOW()" +
       "WHERE id = #{id}")
   int update(StockCard card);
 }

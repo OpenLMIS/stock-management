@@ -11,20 +11,19 @@
 package org.openlmis.stockmanagement.service;
 
 import lombok.NoArgsConstructor;
-import org.openlmis.core.domain.*;
+import org.openlmis.core.repository.ProductRepository;
 import org.openlmis.core.service.*;
 import org.openlmis.stockmanagement.domain.Lot;
+import org.openlmis.stockmanagement.domain.LotOnHand;
 import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
+import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -39,13 +38,35 @@ public class StockCardService {
   FacilityService facilityService;
 
   @Autowired
-  ProductService productService;
+  ProductRepository productRepository;
+
+  @Autowired
+  LotRepository lotRepository;
 
   @Autowired
   StockCardRepository repository;
 
-  public List<Lot> getLots(Long productId) {
-    return getTestLots(productId);
+  StockCardService(FacilityService facilityService,
+                   ProductRepository productRepository,
+                   LotRepository lotRepository,
+                   StockCardRepository repository) {
+    this.facilityService = Objects.requireNonNull(facilityService);
+    this.productRepository = Objects.requireNonNull(productRepository);
+    this.lotRepository = Objects.requireNonNull(lotRepository);
+    this.repository = Objects.requireNonNull(repository);
+  }
+
+  @Transactional
+  public LotOnHand getOrCreateLotOnHand(Lot lot, StockCard stockCard) {
+    LotOnHand lotOnHand = lotRepository.getLotOnHandByStockCardAndLotObject(stockCard.getId(), lot);
+    if (null == lotOnHand) {
+      Lot l = lotRepository.getOrCreateLot(lot);
+      lotOnHand = LotOnHand.createZeroedLotOnHand(l, stockCard);
+      lotRepository.saveLotOnHand(lotOnHand);
+    }
+
+    Objects.requireNonNull(lotOnHand);
+    return lotOnHand;
   }
 
   public StockCard getOrCreateStockCard(Long facilityId, Long productId) {
@@ -63,39 +84,20 @@ public class StockCardService {
   @Transactional
   public void addStockCardEntry(StockCardEntry entry) {
     StockCard card = entry.getStockCard();
+
     card.addToTotalQuantityOnHand(entry.getQuantity());
     repository.persistStockCardEntry(entry);
     repository.updateStockCard(card);
+
+    LotOnHand lotOnHand = entry.getLotOnHand();
+    if (null != lotOnHand) {
+      lotOnHand.addToQuantityOnHand(entry.getQuantity());
+      lotRepository.saveLotOnHand(lotOnHand);
+    }
   }
 
   @Transactional
   public void addStockCardEntries(List<StockCardEntry> entries) {
     for(StockCardEntry entry : entries) addStockCardEntry(entry);
-  }
-
-  private List<Lot> getTestLots(Long productId) {
-    List<Lot> lots = new ArrayList<>();
-    for (int i = 1; i <= 5; i++) {
-      Product product = productService.getById(productId);
-      if (product != null) {
-        Lot lot = new Lot();
-        lot.setId((long) i);
-        lot.setProduct(product);
-        lot.setLotCode("AB-" + i);
-        lot.setManufacturerName("MyManufacturer");
-
-        Date now = new Date();
-        lot.setManufactureDate(now);
-
-        Calendar c = Calendar.getInstance();
-        c.setTime(now);
-        c.add(Calendar.DATE, 365);
-        lot.setExpirationDate(c.getTime());
-
-        lots.add(lot);
-      }
-    }
-
-    return lots;
   }
 }

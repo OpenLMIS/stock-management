@@ -19,6 +19,7 @@ import org.joda.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openlmis.core.serializer.DateTimeDeserializer;
+import org.openlmis.stockmanagement.domain.Lot;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
@@ -31,7 +32,7 @@ public class StockEvent {
   private DateTime occurred;
   private Long quantity;
   private Long lotId;
-  //TODO: add alternative to define lot instead of lookup by id
+  private Lot lot;
   private String reasonName;
 
   public StockEvent() {
