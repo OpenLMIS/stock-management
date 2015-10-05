@@ -197,23 +197,10 @@ public class StockCardController extends BaseController
                     HttpStatus.BAD_REQUEST);
 
             // get or create lot, if lot is being used
-            LotOnHand lotOnHand = null;
-            Long lotId = event.getLotId();
-            Lot lotObj = event.getLot();
-            if (null != lotId) { // Lot specified by id
-                lotOnHand = lotRepository.getLotOnHandByStockCardAndLot(card.getId(), lotId);
-                if (null == lotOnHand) {
-                    return OpenLmisResponse.error(messageService.message("error.lot.unknown"), HttpStatus.BAD_REQUEST);
-                }
-            } else if (null != lotObj) { // Lot specified by object
-                if (null == lotObj.getProduct()) {
-                    lotObj.setProduct(productService.getById(event.getProductId()));
-                }
-                //TODO:  this call might create a lot if it doesn't exist, need to implement permission check
-                lotOnHand = service.getOrCreateLotOnHand(lotObj, card);
-                if (null == lotOnHand) {
-                    return OpenLmisResponse.error("Unable to get or create lot", HttpStatus.BAD_REQUEST);
-                }
+            StringBuilder str = new StringBuilder();
+            LotOnHand lotOnHand = getLotOnHand(event, card, str);
+            if (!str.toString().equals("")) {
+                return OpenLmisResponse.error(messageService.message(str.toString()), HttpStatus.BAD_REQUEST);
             }
 
             // create entry from event
@@ -242,5 +229,28 @@ public class StockCardController extends BaseController
                 stockCard.setEntries(entries.subList(0, entryCount));
             }
         }
+    }
+
+    private LotOnHand getLotOnHand(StockEvent event, StockCard card, StringBuilder str) {
+        LotOnHand lotOnHand = null;
+        Long lotId = event.getLotId();
+        Lot lotObj = event.getLot();
+        if (null != lotId) { // Lot specified by id
+            lotOnHand = lotRepository.getLotOnHandByStockCardAndLot(card.getId(), lotId);
+            if (null == lotOnHand) {
+                str.append("error.lot.unknown");
+            }
+        } else if (null != lotObj) { // Lot specified by object
+            if (null == lotObj.getProduct()) {
+                lotObj.setProduct(productService.getById(event.getProductId()));
+            }
+            if (!lotObj.isValid()) {
+                str.append("error.lot.invalid");
+            }
+            //TODO:  this call might create a lot if it doesn't exist, need to implement permission check
+            lotOnHand = service.getOrCreateLotOnHand(lotObj, card);
+        }
+
+        return lotOnHand;
     }
 }

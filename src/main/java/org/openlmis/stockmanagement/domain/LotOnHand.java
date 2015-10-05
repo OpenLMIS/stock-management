@@ -20,15 +20,15 @@ import java.util.Objects;
 public class LotOnHand extends BaseModel {
 
   @JsonIgnore
-  StockCard stockCard;
+  private StockCard stockCard;
 
-  Lot lot;
+  private Lot lot;
 
-  Long quantityOnHand;
+  private Long quantityOnHand;
 
   @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
   @JsonDeserialize(using=DateDeserializer.class)
-  Date effectiveDate;
+  private Date effectiveDate;
 
   private LotOnHand(Lot lot, StockCard stockCard) {
     Objects.requireNonNull(lot);
@@ -43,6 +43,13 @@ public class LotOnHand extends BaseModel {
     this.quantityOnHand += quantity;
   }
 
+  /**
+   * This method creates a zeroed lot on hand. If lot or stockCard are null, it will throw an exception, rather than
+   * returning null.
+   * @param lot
+   * @param stockCard
+   * @return
+   */
   public static final LotOnHand createZeroedLotOnHand(Lot lot, StockCard stockCard) {
     return new LotOnHand(lot, stockCard);
   }

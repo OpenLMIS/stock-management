@@ -31,4 +31,10 @@ public class Lot extends BaseModel
     @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
     @JsonDeserialize(using=DateDeserializer.class)
     private Date expirationDate;
+
+    public final boolean isValid() {
+        return (null != lotCode && !lotCode.equals("") &&
+            null != manufacturerName && !manufacturerName.equals("") &&
+            null != expirationDate);
+    }
 }

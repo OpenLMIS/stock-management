@@ -62,21 +62,13 @@ public interface StockCardMapper {
   })
   List<StockCard> getAllByFacility(@Param("facilityId")Long facilityId);
 
-  @Select("SELECT id" +
-      ", type" +
-      ", quantity" +
-      ", referencenumber" +
-      ", adjustmenttype AS adjustmentreason" +
-      ", notes" +
+  @Select("SELECT *" +
       " FROM stock_card_entries" +
       " WHERE stockcardid = #{stockCardId}" +
       " ORDER BY createddate DESC")
   List<StockCardEntry> getEntries(@Param("stockCardId")Long stockCardId);
 
-  @Select("SELECT id" +
-      ", lotid" +
-      ", quantityonhand" +
-      ", effectivedate" +
+  @Select("SELECT *" +
       " FROM lots_on_hand" +
       " WHERE stockcardid = #{stockCardId}")
   @Results({

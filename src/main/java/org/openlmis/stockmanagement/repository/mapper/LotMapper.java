@@ -22,8 +22,8 @@ public interface LotMapper {
 
   @Select("SELECT *" +
       " FROM lots" +
-      " WHERE lotnumber = #{lotCode}" +
-      "   AND manufacturername = #{manufacturerName}" +
+      " WHERE LOWER(lotnumber) = LOWER(#{lotCode})" +
+      "   AND LOWER(manufacturername) = LOWER(#{manufacturerName})" +
       "   AND expirationdate = #{expirationDate}")
   @Results({
       @Result(
@@ -48,8 +48,8 @@ public interface LotMapper {
       " FROM lots_on_hand loh" +
       "   JOIN lots l ON l.id = loh.lotid" +
       " WHERE loh.stockcardid = #{stockCardId}" +
-      "   AND l.lotnumber = #{lot.lotCode}" +
-      "   AND l.manufacturername = #{lot.manufacturerName}" +
+      "   AND LOWER(l.lotnumber) = LOWER(#{lot.lotCode})" +
+      "   AND LOWER(l.manufacturername) = LOWER(#{lot.manufacturerName})" +
       "   AND l.expirationdate = #{lot.expirationDate}")
   @Results({
       @Result(

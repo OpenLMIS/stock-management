@@ -260,21 +260,4 @@ public class StockCardControllerTest {
     verify(service).addStockCardEntries(Collections.singletonList(entry));
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
-
-  @Test
-  public void shouldErrorWithStockCardAndLotObjectNotFound() {
-    setupEvent();
-    setupLot();
-
-    // test
-    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
-    when(productService.getById(pId)).thenReturn(defaultProduct);
-    when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
-    when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
-    when(service.getOrCreateLotOnHand(lot, dummyCard)).thenReturn(null);
-    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
-
-    // verify
-    assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
-  }
 }

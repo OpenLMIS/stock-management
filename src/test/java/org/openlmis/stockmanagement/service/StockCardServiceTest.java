@@ -53,6 +53,7 @@ public class StockCardServiceTest {
 
     private long stockCardId;
     private Lot lot;
+    private Lot createdLot;
     private LotOnHand expectedLotOnHand;
 
     static  {
@@ -64,6 +65,7 @@ public class StockCardServiceTest {
     @Before
     public void setup() {
         stockCardId = 1;
+        dummyCard.setId(stockCardId);
 
         lot = new Lot();
         lot.setProduct(defaultProduct);
@@ -71,6 +73,13 @@ public class StockCardServiceTest {
         lot.setManufacturerName("Manu");
         lot.setManufactureDate(new Date());
         lot.setExpirationDate(new Date());
+
+        createdLot = new Lot();
+        createdLot.setProduct(lot.getProduct());
+        createdLot.setLotCode(lot.getLotCode());
+        createdLot.setManufacturerName(lot.getManufacturerName());
+        createdLot.setManufactureDate(lot.getManufactureDate());
+        createdLot.setExpirationDate(lot.getExpirationDate());
 
         expectedLotOnHand = LotOnHand.createZeroedLotOnHand(lot, dummyCard);
 
@@ -92,9 +101,9 @@ public class StockCardServiceTest {
     @Test
     public void shouldCreateNonExistingLot() {
         when(lotRepository.getLotOnHandByStockCardAndLotObject(stockCardId, lot)).thenReturn(null);
+        when(lotRepository.getOrCreateLot(lot)).thenReturn(createdLot);
         LotOnHand lotOnHand = service.getOrCreateLotOnHand(lot, dummyCard);
 
-        verify(lotRepository).saveLot(lot);
         assertEquals(lotOnHand.getQuantityOnHand(), expectedLotOnHand.getQuantityOnHand());
         assertEquals(lotOnHand.getLot().getLotCode(), expectedLotOnHand.getLot().getLotCode());
     }

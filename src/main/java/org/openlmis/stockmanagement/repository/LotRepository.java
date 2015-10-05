@@ -22,12 +22,14 @@ public class LotRepository {
     return mapper.getLotOnHandByStockCardAndLotObject(stockCardId, lot);
   }
 
-  public Lot getByObject(Lot lot) {
-    return mapper.getByObject(lot);
-  }
+  public Lot getOrCreateLot(Lot lot) {
+    Lot l = mapper.getByObject(lot);
+    if (null == l) {
+      mapper.insert(lot);
+      l = lot;
+    }
 
-  public void saveLot(Lot lot) {
-    mapper.insert(lot);
+    return l;
   }
 
   public void saveLotOnHand(LotOnHand lotOnHand) {

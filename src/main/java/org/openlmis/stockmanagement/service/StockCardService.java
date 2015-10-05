@@ -60,11 +60,7 @@ public class StockCardService {
   public LotOnHand getOrCreateLotOnHand(Lot lot, StockCard stockCard) {
     LotOnHand lotOnHand = lotRepository.getLotOnHandByStockCardAndLotObject(stockCard.getId(), lot);
     if (null == lotOnHand) {
-      Lot l = lotRepository.getByObject(lot);
-      if (null != l) {
-        lotRepository.saveLot(lot);
-        l = lot;
-      }
+      Lot l = lotRepository.getOrCreateLot(lot);
       lotOnHand = LotOnHand.createZeroedLotOnHand(l, stockCard);
       lotRepository.saveLotOnHand(lotOnHand);
     }
