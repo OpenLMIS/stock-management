@@ -155,8 +155,8 @@ public class StockCardController extends BaseController
         }
     }
 
-    @RequestMapping(value = "facilities/{facilityId}/stockCards/adjust", method = POST, headers = ACCEPT_JSON)
-    @ApiOperation(value="Update stock card entries")
+    @RequestMapping(value = "facilities/{facilityId}/stockCards", method = POST, headers = ACCEPT_JSON)
+    @ApiOperation(value="Update stock cards at a facility.")
     @Transactional
     public ResponseEntity adjustStock(@PathVariable long facilityId,
                                       @RequestBody(required=true) List<StockEvent> events,
