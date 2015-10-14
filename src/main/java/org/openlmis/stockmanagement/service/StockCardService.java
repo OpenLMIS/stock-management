@@ -69,8 +69,8 @@ public class StockCardService {
     return lotOnHand;
   }
 
-  public StockCard getOrCreateStockCard(Long facilityId, Long productId) {
-    return repository.getOrCreateStockCard(facilityId, productId);
+  public StockCard getOrCreateStockCard(Long facilityId, String productCode) {
+    return repository.getOrCreateStockCard(facilityId, productCode);
   }
 
   public StockCard getStockCardById(Long facilityId, Long stockCardId) {

@@ -92,14 +92,14 @@ public class StockCardController extends BaseController
 
     //TODO: Determine what the permissions associated with @PreAuthorize should be. (MANAGE_PROGRAM_PRODUCT, below, is just a placeholder).
 
-    @RequestMapping(value = "facilities/{facilityId}/products/{productId}/stockCard", method = GET, headers = ACCEPT_JSON)
+    @RequestMapping(value = "facilities/{facilityId}/products/{productCode}/stockCard", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about the stock card for the specified facility and product.",
             notes = "Gets stock card information, by facility and product. By default, returns most recent entry. " +
                 "Entries number can be specified to get more than one.")
-    public ResponseEntity getStockCard(@PathVariable Long facilityId, @PathVariable Long productId,
+    public ResponseEntity getStockCard(@PathVariable Long facilityId, @PathVariable String productCode,
                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
-        StockCard stockCard = stockCardRepository.getStockCardByFacilityAndProduct(facilityId, productId);
+        StockCard stockCard = stockCardRepository.getStockCardByFacilityAndProduct(facilityId, productCode);
 
         if (stockCard != null) {
             filterEntries(stockCard, entries);
@@ -178,8 +178,8 @@ public class StockCardController extends BaseController
                 return OpenLmisResponse.error("Invalid stock adjustment", HttpStatus.BAD_REQUEST);
 
             // validate product
-            long productId = event.getProductId();
-            if(null == productService.getById(productId))
+            String productCode = event.getProductCode();
+            if(null == productService.getByCode(productCode))
                 return OpenLmisResponse.error(messageService.message("error.product.unknown"), HttpStatus.BAD_REQUEST);
 
             // validate reason
@@ -191,7 +191,7 @@ public class StockCardController extends BaseController
 
             // get or create stock card
             //TODO:  this call might create a stock card if it doesn't exist, need to implement permission check
-            StockCard card = service.getOrCreateStockCard(facilityId, productId);
+            StockCard card = service.getOrCreateStockCard(facilityId, productCode);
             if(null == card)
                 return OpenLmisResponse.error("Unable to adjust stock for facility and product",
                     HttpStatus.BAD_REQUEST);
@@ -242,7 +242,7 @@ public class StockCardController extends BaseController
             }
         } else if (null != lotObj) { // Lot specified by object
             if (null == lotObj.getProduct()) {
-                lotObj.setProduct(productService.getById(event.getProductId()));
+                lotObj.setProduct(productService.getByCode(event.getProductCode()));
             }
             if (!lotObj.isValid()) {
                 str.append("error.lot.invalid");

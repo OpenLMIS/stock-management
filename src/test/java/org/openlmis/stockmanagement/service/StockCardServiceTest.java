@@ -25,6 +25,8 @@ import java.util.Date;
 
 import static com.natpryce.makeiteasy.MakeItEasy.*;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Category(UnitTests.class)
@@ -57,7 +59,7 @@ public class StockCardServiceTest {
 
     static  {
         defaultFacility = make(a(FacilityBuilder.defaultFacility, with(FacilityBuilder.facilityId, 1L)));
-        defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.productId, 1L)));
+        defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.code, "CODE")));
         dummyCard = StockCard.createZeroedStockCard(defaultFacility, defaultProduct);
     }
 
@@ -105,5 +107,11 @@ public class StockCardServiceTest {
 
         assertEquals(lotOnHand.getQuantityOnHand(), expectedLotOnHand.getQuantityOnHand());
         assertEquals(lotOnHand.getLot().getLotCode(), expectedLotOnHand.getLot().getLotCode());
+    }
+
+    @Test
+    public void shouldCallRepositoryGetOrCreateStockCardWithProductCode() {
+        service.getOrCreateStockCard(defaultFacility.getId(), defaultProduct.getCode());
+        verify(repository, times(1)).getOrCreateStockCard(defaultFacility.getId(), defaultProduct.getCode());
     }
 }
