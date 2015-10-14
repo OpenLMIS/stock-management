@@ -23,6 +23,7 @@ import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.core.web.controller.BaseController;
 import org.openlmis.stockmanagement.domain.*;
 import org.openlmis.stockmanagement.dto.StockEvent;
+import org.openlmis.stockmanagement.dto.StockEventType;
 import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.openlmis.stockmanagement.service.StockCardService;
@@ -158,9 +159,9 @@ public class StockCardController extends BaseController
     @RequestMapping(value = "facilities/{facilityId}/stockCards", method = POST, headers = ACCEPT_JSON)
     @ApiOperation(value="Update stock cards at a facility.")
     @Transactional
-    public ResponseEntity adjustStock(@PathVariable long facilityId,
-                                      @RequestBody(required=true) List<StockEvent> events,
-                                      HttpServletRequest request) {
+    public ResponseEntity processStock(@PathVariable long facilityId,
+                                       @RequestBody(required = true) List<StockEvent> events,
+                                       HttpServletRequest request) {
 
         // verify we have something to do and facility exists
         if(null == events || 0 >= events.size()) return OpenLmisResponse.success("Nothing to do");
@@ -174,8 +175,10 @@ public class StockCardController extends BaseController
             logger.debug("Processing event: " + event);
 
             // validate event
-            if(false == event.isValidAdjustment())
-                return OpenLmisResponse.error("Invalid stock adjustment", HttpStatus.BAD_REQUEST);
+            if(!event.isValidAdjustment() &&
+                    !event.isValidIssue() &&
+                    !event.isValidReceipt())
+                return OpenLmisResponse.error("Invalid stock event", HttpStatus.BAD_REQUEST);
 
             // validate product
             long productId = event.getProductId();
@@ -183,17 +186,20 @@ public class StockCardController extends BaseController
                 return OpenLmisResponse.error(messageService.message("error.product.unknown"), HttpStatus.BAD_REQUEST);
 
             // validate reason
-            StockAdjustmentReason reason = stockAdjustmentReasonRepository.getAdjustmentReasonByName(
-                event.getReasonName());
-            if(null == reason)
-                return OpenLmisResponse.error(messageService.message("error.stockadjustmentreason.unknown"),
-                    HttpStatus.BAD_REQUEST);
+            StockAdjustmentReason reason = null;
+            if (StockEventType.ADJUSTMENT == event.getType()) {
+                reason = stockAdjustmentReasonRepository.getAdjustmentReasonByName(
+                        event.getReasonName());
+                if(null == reason)
+                    return OpenLmisResponse.error(messageService.message("error.stockadjustmentreason.unknown"),
+                            HttpStatus.BAD_REQUEST);
+            }
 
             // get or create stock card
             //TODO:  this call might create a stock card if it doesn't exist, need to implement permission check
             StockCard card = service.getOrCreateStockCard(facilityId, productId);
             if(null == card)
-                return OpenLmisResponse.error("Unable to adjust stock for facility and product",
+                return OpenLmisResponse.error("Unable to process stock for facility and product",
                     HttpStatus.BAD_REQUEST);
 
             // get or create lot, if lot is being used
@@ -205,12 +211,30 @@ public class StockCardController extends BaseController
 
             // create entry from event
             long quantity = event.getQuantity();
-            quantity = reason.getAdditive() ? quantity : quantity * -1;
-            StockCardEntry entry = new StockCardEntry(card,
-                StockCardEntryType.ADJUSTMENT,
-                quantity);
+            if (null != reason) {
+                quantity = reason.getAdditive() ? quantity : quantity * -1;
+            } else if (StockEventType.ISSUE == event.getType()) {
+                quantity = quantity * -1;
+            }
+
+            StockCardEntryType entryType = StockCardEntryType.ADJUSTMENT;
+            switch (event.getType()) {
+                case ISSUE: entryType = StockCardEntryType.DEBIT;
+                    break;
+                case RECEIPT: entryType = StockCardEntryType.CREDIT;
+                    break;
+                case ADJUSTMENT: entryType = StockCardEntryType.ADJUSTMENT;
+                    break;
+                default: break;
+            }
+
+            StockCardEntry entry = new StockCardEntry(card, entryType, quantity);
             entry.setAdjustmentReason(reason);
             entry.setLotOnHand(lotOnHand);
+            if (StockEventType.RECEIPT == event.getType() &&
+                    null != event.getVvmStatus()) {
+                entry.addKeyValue("vvmStatus", event.getVvmStatus().toString());
+            }
             entry.setCreatedBy(userId);
             entry.setModifiedBy(userId);
             entries.add(entry);

@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 import org.openlmis.core.domain.BaseModel;
 import org.openlmis.core.serializer.DateDeserializer;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @Data
@@ -30,6 +32,8 @@ public class LotOnHand extends BaseModel {
   @JsonDeserialize(using=DateDeserializer.class)
   private Date effectiveDate;
 
+  private List<StockCardEntryKV> keyValues;
+
   private LotOnHand(Lot lot, StockCard stockCard) {
     Objects.requireNonNull(lot);
     Objects.requireNonNull(stockCard);
@@ -37,6 +41,7 @@ public class LotOnHand extends BaseModel {
     this.stockCard = stockCard;
     this.quantityOnHand = 0L;
     this.effectiveDate = new Date();
+    this.keyValues = new ArrayList<>();
   }
 
   public void addToQuantityOnHand(long quantity) {

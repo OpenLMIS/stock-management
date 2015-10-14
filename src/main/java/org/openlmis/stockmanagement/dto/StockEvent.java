@@ -25,6 +25,8 @@ import org.openlmis.stockmanagement.domain.Lot;
 @EqualsAndHashCode(callSuper=false)
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class StockEvent {
+
+  private StockEventType type;
   private Long facilityId;
   private Long productId;
 
@@ -34,6 +36,8 @@ public class StockEvent {
   private Long lotId;
   private Lot lot;
   private String reasonName;
+
+  private Integer vvmStatus;
 
   public StockEvent() {
     facilityId = null;
@@ -47,8 +51,7 @@ public class StockEvent {
   public long getQuantity() {return Math.abs(quantity);}
 
   public boolean isValid() {
-    if( null == facilityId
-      || null == productId
+    if(null == productId
       || null == quantity)
       return false;
 
@@ -56,7 +59,23 @@ public class StockEvent {
   }
 
   public boolean isValidAdjustment() {
-    return isValid() && false == StringUtils.isBlank(reasonName);
+    return isValid() &&
+            StockEventType.ADJUSTMENT == type &&
+            !StringUtils.isBlank(reasonName);
+  }
+
+  public boolean isValidIssue() {
+    // Need to know what facility it is going to
+    return isValid() &&
+            StockEventType.ISSUE == type &&
+            null != facilityId;
+  }
+
+  public boolean isValidReceipt() {
+    // Need to know what facility it is coming from
+    return isValid() &&
+            StockEventType.RECEIPT == type &&
+            null != facilityId;
   }
 
   public boolean hasLot() {

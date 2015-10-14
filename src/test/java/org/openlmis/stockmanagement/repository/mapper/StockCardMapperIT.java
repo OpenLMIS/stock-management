@@ -23,6 +23,7 @@ import org.openlmis.core.repository.mapper.ProductMapper;
 import org.openlmis.db.categories.IntegrationTests;
 import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
+import org.openlmis.stockmanagement.domain.StockCardEntryKV;
 import org.openlmis.stockmanagement.domain.StockCardEntryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,6 +37,7 @@ import static com.natpryce.makeiteasy.MakeItEasy.a;
 import static com.natpryce.makeiteasy.MakeItEasy.make;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 @Category(IntegrationTests.class)
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -77,5 +79,20 @@ public class StockCardMapperIT {
 
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
     assertThat(entries.size(), is(1));
+  }
+
+  @Test
+  public void shouldInsertEntryKeyValues() {
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L);
+    mapper.insertEntry(entry);
+    mapper.insertEntryKeyValue(entry, "vvmstatus", "1");
+
+    List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
+
+    for (StockCardEntryKV kv : entries.get(0).getKeyValues()) {
+      if (kv.getKeyColumn().equalsIgnoreCase("vvmstatus")) {
+        assertEquals(kv.getValueColumn(), "1");
+      }
+    }
   }
 }
