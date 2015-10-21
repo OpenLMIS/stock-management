@@ -21,6 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.openlmis.core.serializer.DateTimeDeserializer;
 import org.openlmis.stockmanagement.domain.Lot;
 
+import java.util.Map;
+
 @Data
 @EqualsAndHashCode(callSuper=false)
 @JsonIgnoreProperties(ignoreUnknown=true)
@@ -37,7 +39,7 @@ public class StockEvent {
   private Lot lot;
   private String reasonName;
 
-  private Integer vvmStatus;
+  private Map<String, String> customProps;
 
   public StockEvent() {
     facilityId = null;

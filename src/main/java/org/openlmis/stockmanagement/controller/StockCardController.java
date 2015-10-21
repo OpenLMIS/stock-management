@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -231,9 +232,9 @@ public class StockCardController extends BaseController
             StockCardEntry entry = new StockCardEntry(card, entryType, quantity);
             entry.setAdjustmentReason(reason);
             entry.setLotOnHand(lotOnHand);
-            if (StockEventType.RECEIPT == event.getType() &&
-                    null != event.getVvmStatus()) {
-                entry.addKeyValue("vvmStatus", event.getVvmStatus().toString());
+            Map<String, String> customProps = event.getCustomProps();
+            for (String k : customProps.keySet()) {
+                entry.addKeyValue(k, customProps.get(k));
             }
             entry.setCreatedBy(userId);
             entry.setModifiedBy(userId);
