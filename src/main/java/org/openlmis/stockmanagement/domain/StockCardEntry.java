@@ -32,7 +32,6 @@ public class StockCardEntry extends BaseModel {
 
   String notes;
 
-  @JsonIgnore
   private List<StockCardEntryKV> keyValues;
 
   public StockCardEntry(StockCard card, StockCardEntryType type, long quantity) {
@@ -42,6 +41,7 @@ public class StockCardEntry extends BaseModel {
     this.keyValues = new ArrayList<>();
   }
 
+  @JsonIgnore
   public final boolean isValid() {
     if(null == type) return false;
     if(null == quantity) return false;
@@ -49,6 +49,7 @@ public class StockCardEntry extends BaseModel {
     return true;
   }
 
+  @JsonIgnore
   public final boolean isValidAdjustment() {
     if(false == isValid()) return false;
     if(StockCardEntryType.ADJUSTMENT == type && null == adjustmentReason) return false;
