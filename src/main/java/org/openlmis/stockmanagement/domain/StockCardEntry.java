@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.openlmis.core.domain.BaseModel;
 import org.openlmis.core.domain.StockAdjustmentReason;
 
-import java.util.Objects;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +19,7 @@ public class StockCardEntry extends BaseModel {
   @JsonIgnore
   private StockCard stockCard;
 
+  // TODO: will need to determine during stock receipt code if this is necessary to track
   private StockCardEntryType type;
 
   private Long quantity;
@@ -31,12 +32,16 @@ public class StockCardEntry extends BaseModel {
 
   String notes;
 
+  private List<StockCardEntryKV> keyValues;
+
   public StockCardEntry(StockCard card, StockCardEntryType type, long quantity) {
     this.stockCard = Objects.requireNonNull(card);
     this.type = Objects.requireNonNull(type);
     this.quantity = Objects.requireNonNull(quantity);
+    this.keyValues = new ArrayList<>();
   }
 
+  @JsonIgnore
   public final boolean isValid() {
     if(null == type) return false;
     if(null == quantity) return false;
@@ -44,10 +49,16 @@ public class StockCardEntry extends BaseModel {
     return true;
   }
 
+  @JsonIgnore
   public final boolean isValidAdjustment() {
     if(false == isValid()) return false;
     if(StockCardEntryType.ADJUSTMENT == type && null == adjustmentReason) return false;
 
     return true;
+  }
+
+  public void addKeyValue(String key, String value) {
+    String newKey = key.trim().toLowerCase();
+    keyValues.add(new StockCardEntryKV(newKey, value));
   }
 }

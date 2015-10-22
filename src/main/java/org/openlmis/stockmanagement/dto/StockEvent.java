@@ -18,13 +18,18 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openlmis.core.domain.StockAdjustmentReason;
 import org.openlmis.core.serializer.DateTimeDeserializer;
 import org.openlmis.stockmanagement.domain.Lot;
+
+import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class StockEvent {
+
+  private StockEventType type;
   private Long facilityId;
   private Long productId;
 
@@ -34,6 +39,8 @@ public class StockEvent {
   private Long lotId;
   private Lot lot;
   private String reasonName;
+
+  private Map<String, String> customProps;
 
   public StockEvent() {
     facilityId = null;
@@ -46,9 +53,18 @@ public class StockEvent {
 
   public long getQuantity() {return Math.abs(quantity);}
 
+  public long getPositiveOrNegativeQuantity(StockAdjustmentReason reason) {
+    long q = Math.abs(quantity);
+    if (null != reason) {
+      q = reason.getAdditive() ? q : q * -1;
+    } else if (StockEventType.ISSUE == type) {
+      q = q * -1;
+    }
+    return q;
+  }
+
   public boolean isValid() {
-    if( null == facilityId
-      || null == productId
+    if(null == productId
       || null == quantity)
       return false;
 
@@ -56,7 +72,23 @@ public class StockEvent {
   }
 
   public boolean isValidAdjustment() {
-    return isValid() && false == StringUtils.isBlank(reasonName);
+    return isValid() &&
+            StockEventType.ADJUSTMENT == type &&
+            !StringUtils.isBlank(reasonName);
+  }
+
+  public boolean isValidIssue() {
+    // Need to know what facility it is going to
+    return isValid() &&
+            StockEventType.ISSUE == type &&
+            null != facilityId;
+  }
+
+  public boolean isValidReceipt() {
+    // Need to know what facility it is coming from
+    return isValid() &&
+            StockEventType.RECEIPT == type &&
+            null != facilityId;
   }
 
   public boolean hasLot() {
