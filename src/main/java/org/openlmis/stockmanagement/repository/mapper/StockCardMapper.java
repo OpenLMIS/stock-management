@@ -76,13 +76,9 @@ public interface StockCardMapper {
   List<StockCardEntryKV> getEntryKeyValues(@Param("stockCardEntryId")Long stockCardEntryId);
 
   @Select("SELECT loh.*" +
-          ", sce.id AS stockcardentryid" +
           " FROM lots_on_hand loh" +
-          "   JOIN stock_card_entries sce ON sce.lotonhandid = loh.id" +
           " WHERE loh.stockcardid = #{stockCardId}")
   @Results({
-      @Result(property = "keyValues", column = "stockcardentryid", javaType = List.class,
-          many = @Many(select = "getEntryKeyValues")),
       @Result(
           property = "lot", column = "lotId", javaType = Lot.class,
           one = @One(select = "org.openlmis.stockmanagement.repository.mapper.LotMapper.getById"))
