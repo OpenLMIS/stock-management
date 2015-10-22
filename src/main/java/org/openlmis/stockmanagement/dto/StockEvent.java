@@ -18,6 +18,7 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openlmis.core.domain.StockAdjustmentReason;
 import org.openlmis.core.serializer.DateTimeDeserializer;
 import org.openlmis.stockmanagement.domain.Lot;
 
@@ -51,6 +52,16 @@ public class StockEvent {
   }
 
   public long getQuantity() {return Math.abs(quantity);}
+
+  public long getPositiveOrNegativeQuantity(StockAdjustmentReason reason) {
+    long q = Math.abs(quantity);
+    if (null != reason) {
+      q = reason.getAdditive() ? q : q * -1;
+    } else if (StockEventType.ISSUE == type) {
+      q = q * -1;
+    }
+    return q;
+  }
 
   public boolean isValid() {
     if(null == productId

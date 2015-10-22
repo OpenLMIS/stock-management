@@ -200,23 +200,20 @@ public class StockCardController extends BaseController
             //TODO:  this call might create a stock card if it doesn't exist, need to implement permission check
             StockCard card = service.getOrCreateStockCard(facilityId, productId);
             if(null == card)
-                return OpenLmisResponse.error("Unable to process stock for facility and product",
-                    HttpStatus.BAD_REQUEST);
+                return OpenLmisResponse.error("Unable to get/create stock card for facility and product",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
 
             // get or create lot, if lot is being used
             StringBuilder str = new StringBuilder();
-            LotOnHand lotOnHand = getLotOnHand(event, card, str);
+            Long lotId = event.getLotId();
+            Lot lotObj = event.getLot();
+            LotOnHand lotOnHand = service.getLotOnHand(lotId, lotObj, productId, card, str);
             if (!str.toString().equals("")) {
                 return OpenLmisResponse.error(messageService.message(str.toString()), HttpStatus.BAD_REQUEST);
             }
 
             // create entry from event
-            long quantity = event.getQuantity();
-            if (null != reason) {
-                quantity = reason.getAdditive() ? quantity : quantity * -1;
-            } else if (StockEventType.ISSUE == event.getType()) {
-                quantity = quantity * -1;
-            }
+            long quantity = event.getPositiveOrNegativeQuantity(reason);
 
             StockCardEntryType entryType = StockCardEntryType.ADJUSTMENT;
             switch (event.getType()) {
@@ -233,8 +230,10 @@ public class StockCardController extends BaseController
             entry.setAdjustmentReason(reason);
             entry.setLotOnHand(lotOnHand);
             Map<String, String> customProps = event.getCustomProps();
-            for (String k : customProps.keySet()) {
-                entry.addKeyValue(k, customProps.get(k));
+            if (null != customProps) {
+                for (String k : customProps.keySet()) {
+                    entry.addKeyValue(k, customProps.get(k));
+                }
             }
             entry.setCreatedBy(userId);
             entry.setModifiedBy(userId);
@@ -254,28 +253,5 @@ public class StockCardController extends BaseController
                 stockCard.setEntries(entries.subList(0, entryCount));
             }
         }
-    }
-
-    private LotOnHand getLotOnHand(StockEvent event, StockCard card, StringBuilder str) {
-        LotOnHand lotOnHand = null;
-        Long lotId = event.getLotId();
-        Lot lotObj = event.getLot();
-        if (null != lotId) { // Lot specified by id
-            lotOnHand = lotRepository.getLotOnHandByStockCardAndLot(card.getId(), lotId);
-            if (null == lotOnHand) {
-                str.append("error.lot.unknown");
-            }
-        } else if (null != lotObj) { // Lot specified by object
-            if (null == lotObj.getProduct()) {
-                lotObj.setProduct(productService.getById(event.getProductId()));
-            }
-            if (!lotObj.isValid()) {
-                str.append("error.lot.invalid");
-            }
-            //TODO:  this call might create a lot if it doesn't exist, need to implement permission check
-            lotOnHand = service.getOrCreateLotOnHand(lotObj, card);
-        }
-
-        return lotOnHand;
     }
 }
