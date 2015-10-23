@@ -28,9 +28,16 @@ public class StockManagementConfigController extends BaseController {
 
   @RequestMapping(value = "adjustmentReasons", method = GET, headers = ACCEPT_JSON)
   @ApiOperation(value = "Get information about all stock adjustment reasons from the system.",
-      notes = "Gets stock adjustment reasons from the system. Can be specified by program, or returns a default list" +
-          " if program is not specified. Additive boolean can be specified to only get positive or negative reasons," +
-          " otherwise return all.")
+      notes = "Gets stock adjustment reasons from the system. Can be specified by program, or returns a default list " +
+              "if program is not specified. Additive boolean can be specified to only get positive or negative reasons, " +
+              "otherwise return all." +
+              "<p>Request parameters:" +
+              "<ul>" +
+              "<li><strong>programId</strong> (Integer, optional, no default) - program for program-specific " +
+              "adjustment reasons. If not specified, get default reasons.</li>" +
+              "<li><strong>additive</strong> (Boolean, optional, no default) - in order to get additive, or " +
+              "non-additive reasons. If not specified, get both.</li>" +
+              "</ul>")
   public ResponseEntity getAdjustmentReasons(@RequestParam(value = "additive", required = false) Boolean additive,
                                              @RequestParam(value = "programId", required = false) Long programId)
   {

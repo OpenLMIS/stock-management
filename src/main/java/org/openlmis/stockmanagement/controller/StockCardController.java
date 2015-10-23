@@ -96,8 +96,18 @@ public class StockCardController extends BaseController
 
     @RequestMapping(value = "facilities/{facilityId}/products/{productId}/stockCard", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about the stock card for the specified facility and product.",
-            notes = "Gets stock card information, by facility and product. By default, returns most recent entry. " +
-                "Entries number can be specified to get more than one.")
+            notes = "Gets stock card information, by facility and product." +
+                    "<p>Path parameters (required):" +
+                    "<ul>" +
+                    "<li><strong>facilityId</strong> (Integer) - facility for the stock card.</li>" +
+                    "<li><strong>productId</strong> (Integer) - product for the stock card.</li>" +
+                    "</ul>" +
+                    "<p>" +
+                    "<p>Request parameters:" +
+                    "<ul>" +
+                    "<li><strong>entries</strong> (Integer, optional, default = 1) - Number of stock card entries to " +
+                    "get in the result.</li>" +
+                    "</ul>")
     public ResponseEntity getStockCard(@PathVariable Long facilityId, @PathVariable Long productId,
                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries)
     {
@@ -114,12 +124,21 @@ public class StockCardController extends BaseController
 
     @RequestMapping(value = "facilities/{facilityId}/stockCards/{stockCardId}", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about the specified stock card for the specified facility.",
-            notes = "Gets stock card information, by facility and stock card id. If facility does not have specified " +
-                "stock card id, returns 404 NOT FOUND. By default, returns most recent entry. Entries number can be " +
-                "specified to get more than one.")
+            notes = "Gets stock card information, by facility and stock card id." +
+                    "<p>If facility does not have specified stock card id, returns 404 NOT FOUND." +
+                    "<p>Path parameters (required):" +
+                    "<ul>" +
+                    "<li><strong>facilityId</strong> (Integer) - facility for the stock card.</li>" +
+                    "<li><strong>stockCardId</strong> (Integer) - the specified stock card.</li>" +
+                    "</ul>" +
+                    "<p>" +
+                    "<p>Request parameters:" +
+                    "<ul>" +
+                    "<li><strong>entries</strong> (Integer, optional, default = 1) - Number of stock card entries to " +
+                    "get in the result.</li>" +
+                    "</ul>")
     public ResponseEntity getStockCardById(@PathVariable Long facilityId, @PathVariable Long stockCardId,
-                                           @RequestParam(value = "entries", defaultValue = "1")Integer entries)
-    {
+                                           @RequestParam(value = "entries", defaultValue = "1")Integer entries) {
         StockCard stockCard = service.getStockCardById(facilityId, stockCardId);
 
         if (stockCard != null) {
@@ -133,13 +152,22 @@ public class StockCardController extends BaseController
 
     @RequestMapping(value = "facilities/{facilityId}/stockCards", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about all stock cards for the specified facility.",
-            notes = "Gets all stock card information, by facility. By default, returns most recent entry. Entries " +
-                "number can be specified to get more than one. Can also specify countOnly boolean to only return the " +
-                "number of stock cards at the facility.")
+            notes = "Gets all stock card information, by facility." +
+                    "<p>Path parameters (required):" +
+                    "<ul>" +
+                    "<li><strong>facilityId</strong> (Integer) - facility for the stock cards.</li>" +
+                    "</ul>" +
+                    "<p>" +
+                    "<p>Request parameters:" +
+                    "<ul>" +
+                    "<li><strong>entries</strong> (Integer, optional, default = 1) - Number of stock card entries to " +
+                    "get in the result.</li>" +
+                    "<li><strong>countOnly</strong> (Boolean, optional, default = false) - Get only the count of " +
+                    "stock cards.</li>" +
+                    "</ul>")
     public ResponseEntity getStockCards(@PathVariable Long facilityId,
                                         @RequestParam(value = "entries", defaultValue = "1")Integer entries,
-                                        @RequestParam(value = "countOnly", defaultValue = "false")Boolean countOnly)
-    {
+                                        @RequestParam(value = "countOnly", defaultValue = "false")Boolean countOnly) {
         List<StockCard> stockCards = service.getStockCards(facilityId);
 
         if (countOnly) {
@@ -158,7 +186,46 @@ public class StockCardController extends BaseController
     }
 
     @RequestMapping(value = "facilities/{facilityId}/stockCards", method = POST, headers = ACCEPT_JSON)
-    @ApiOperation(value="Update stock cards at a facility.")
+    @ApiOperation(value="Update stock cards at a facility.",
+            notes = "Updates stock cards at a facility. This is done by providing a list of stock events." +
+                    "<p>Path parameters (required):" +
+                    "<ul>" +
+                    "<li><strong>facilityId</strong> (Integer) - facility for the stock cards in which to update.</li>" +
+                    "</ul>" +
+                    "<p>" +
+                    "<p>Body parameters (required):" +
+                    "<ul>" +
+                    "<li><strong>stock events</strong> (Array of stock event objects) - a list of stock events to " +
+                    "process for update.</li>" +
+                    "</ul>" +
+                    "<p>" +
+                    "<p>Example stock event list JSON:" +
+                    "<pre><code>" +
+                    "[\n" +
+                    "   {\n" +
+                    "       \"type\": \"ADJUSTMENT\",\n" +
+                    "       \"productId\": 2412,\n" +
+                    "       \"lotId\": 1, // lotId is optional; if specified, lot object is ignored\n" +
+                    "       \"lot\": { // lot object is optional\n" +
+                    "           \"lotCode\": \"C1\",\n" +
+                    "           \"manufacturerName\": \"Manufacturer 3\",\n" +
+                    "           \"expirationDate\": \"2016-07-01\"\n" +
+                    "       },\n" +
+                    "       \"quantity\": 50,\n" +
+                    "       \"reasonName\": \"TRANSFER_IN\"\n" +
+                    "   },\n" +
+                    "   {\n" +
+                    "       \"type\": \"RECEIPT\",\n" +
+                    "       \"facilityId\": 19074,\n" +
+                    "       \"productId\": 2412,\n" +
+                    "       \"quantity\": 50,\n" +
+                    "       \"customProps\": { // customProps is optional, use this object for custom properties\n" +
+                    "             \"vvmStatus\": \"1\" // example custom property vvmStatus\n" +
+                    "       },\n" +
+                    "       \"reasonName\": \"TRANSFER_IN\"\n" +
+                    "   }\n" +
+                    "]\n" +
+                    "</code></pre>")
     @Transactional
     public ResponseEntity processStock(@PathVariable long facilityId,
                                        @RequestBody(required = true) List<StockEvent> events,
