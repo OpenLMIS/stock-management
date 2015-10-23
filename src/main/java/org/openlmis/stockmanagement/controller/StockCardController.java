@@ -99,8 +99,8 @@ public class StockCardController extends BaseController
             notes = "Gets stock card information, by facility and product." +
                     "<p>Path parameters (required):" +
                     "<ul>" +
-                    "<li><strong>facilityId</strong> (Integer) - facility for the stock card.</li>" +
-                    "<li><strong>productId</strong> (Integer) - product for the stock card.</li>" +
+                    "<li><strong>facilityId</strong> (Long) - facility for the stock card.</li>" +
+                    "<li><strong>productId</strong> (Long) - product for the stock card.</li>" +
                     "</ul>" +
                     "<p>" +
                     "<p>Request parameters:" +
@@ -128,8 +128,8 @@ public class StockCardController extends BaseController
                     "<p>If facility does not have specified stock card id, returns 404 NOT FOUND." +
                     "<p>Path parameters (required):" +
                     "<ul>" +
-                    "<li><strong>facilityId</strong> (Integer) - facility for the stock card.</li>" +
-                    "<li><strong>stockCardId</strong> (Integer) - the specified stock card.</li>" +
+                    "<li><strong>facilityId</strong> (Long) - facility for the stock card.</li>" +
+                    "<li><strong>stockCardId</strong> (Long) - the specified stock card.</li>" +
                     "</ul>" +
                     "<p>" +
                     "<p>Request parameters:" +
@@ -155,7 +155,7 @@ public class StockCardController extends BaseController
             notes = "Gets all stock card information, by facility." +
                     "<p>Path parameters (required):" +
                     "<ul>" +
-                    "<li><strong>facilityId</strong> (Integer) - facility for the stock cards.</li>" +
+                    "<li><strong>facilityId</strong> (Long) - facility for the stock cards.</li>" +
                     "</ul>" +
                     "<p>" +
                     "<p>Request parameters:" +
@@ -190,40 +190,71 @@ public class StockCardController extends BaseController
             notes = "Updates stock cards at a facility. This is done by providing a list of stock events." +
                     "<p>Path parameters (required):" +
                     "<ul>" +
-                    "<li><strong>facilityId</strong> (Integer) - facility for the stock cards in which to update.</li>" +
+                    "<li><strong>facilityId</strong> (Long) - facility for the stock cards in which to update.</li>" +
                     "</ul>" +
                     "<p>" +
                     "<p>Body parameters (required):" +
                     "<ul>" +
-                    "<li><strong>stock events</strong> (Array of stock event objects) - a list of stock events to " +
-                    "process for update.</li>" +
+                    "<li>" +
+                    "<strong>stock events</strong> (Array of stock event objects) - a list of stock events to " +
+                    "process for update." +
+                    "<p>" +
+                    "<p>Stock event properties" +
+                    "<ul>" +
+                    "<li><strong>type</strong> (String, required) - type code of stock event (choices are ISSUE, " +
+                    "RECEIPT, ADJUSTMENT).</li>" +
+                    "<li><strong>facilityId</strong> (Long, required for ISSUE/RECEIPT types) - facility id where" +
+                    "stock is going to/coming from.</li>" +
+                    "<li><strong>productId</strong> (Long, required) - product id of the stock being processed.</li>" +
+                    "<li><strong>quantity</strong> (Long, required) - quantity of stock being processed. Specify as a " +
+                    "positive number. For ISSUE, this amount is decremented, for RECEIPT, this amount is incremented, " +
+                    "for ADJUSTMENT, it depends on the adjustment reason.</li>" +
+                    "<li><strong>reasonName</strong> (String, required for ADJUSTMENT types) - reason code for the " +
+                    "adjustment.</li>" +
+                    "<li><strong>lotId</strong> (Long, optional) - lot id of a particular lot that will be processed. " +
+                    "This and lot are optional; if lotId is specified, lot is ignored.</li>" +
+                    "<li><strong>lot</strong> (Object, optional) - lot object of a particular lot that will be " +
+                    "processed. If lot with the specified code, manufacturerName, and expirationDate do not exist, a " +
+                    "lot will be created.</li>" +
+                    "<li><strong>customProps</strong> (Object, optional) - an object of custom properties (keys and " +
+                    "values) to specify custom fields for the stock event." +
+                    "</ul>" +
+                    "</li>" +
                     "</ul>" +
                     "<p>" +
                     "<p>Example stock event list JSON:" +
                     "<pre><code>" +
                     "[\n" +
-                    "   {\n" +
-                    "       \"type\": \"ADJUSTMENT\",\n" +
-                    "       \"productId\": 2412,\n" +
-                    "       \"lotId\": 1, // lotId is optional; if specified, lot object is ignored\n" +
-                    "       \"lot\": { // lot object is optional\n" +
-                    "           \"lotCode\": \"C1\",\n" +
-                    "           \"manufacturerName\": \"Manufacturer 3\",\n" +
-                    "           \"expirationDate\": \"2016-07-01\"\n" +
-                    "       },\n" +
-                    "       \"quantity\": 50,\n" +
-                    "       \"reasonName\": \"TRANSFER_IN\"\n" +
-                    "   },\n" +
-                    "   {\n" +
-                    "       \"type\": \"RECEIPT\",\n" +
-                    "       \"facilityId\": 19074,\n" +
-                    "       \"productId\": 2412,\n" +
-                    "       \"quantity\": 50,\n" +
-                    "       \"customProps\": { // customProps is optional, use this object for custom properties\n" +
-                    "             \"vvmStatus\": \"1\" // example custom property vvmStatus\n" +
-                    "       },\n" +
-                    "       \"reasonName\": \"TRANSFER_IN\"\n" +
-                    "   }\n" +
+                    "    {\n" +
+                    "        \"type\": \"ADJUSTMENT\",\n" +
+                    "        \"productId\": 2412,\n" +
+                    "        \"quantity\": 50,\n" +
+                    "        \"reasonName\": \"TRANSFER_IN\",\n" +
+                    "        \"lotId\": 1\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "        \"type\": \"ISSUE\",\n" +
+                    "        \"facilityId\": 19077,\n" +
+                    "        \"productId\": 2412,\n" +
+                    "        \"quantity\": 50,\n" +
+                    "        \"customProps\": {\n" +
+                    "            \"occurred\": \"2015-10-01\"\n" +
+                    "        }\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "        \"type\": \"RECEIPT\",\n" +
+                    "        \"facilityId\": 19074,\n" +
+                    "        \"productId\": 2412,\n" +
+                    "        \"quantity\": 50,\n" +
+                    "        \"lot\": {\n" +
+                    "            \"lotCode\": \"C1\",\n" +
+                    "            \"manufacturerName\": \"Manufacturer 3\",\n" +
+                    "            \"expirationDate\": \"2016-07-01\"\n" +
+                    "        },\n" +
+                    "        \"customProps\": {\n" +
+                    "            \"vvmStatus\": \"1\"\n" +
+                    "        }\n" +
+                    "    }\n" +
                     "]\n" +
                     "</code></pre>")
     @Transactional
