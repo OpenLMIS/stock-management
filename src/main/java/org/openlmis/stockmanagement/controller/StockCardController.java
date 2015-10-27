@@ -38,10 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -108,13 +105,16 @@ public class StockCardController extends BaseController
                     "<li><strong>entries</strong> (Integer, optional, default = 1) - Number of stock card entries to " +
                     "get in the result.</li>" +
                     "</ul>")
-    public ResponseEntity getStockCard(@PathVariable Long facilityId, @PathVariable Long productId,
-                                       @RequestParam(value = "entries", defaultValue = "1")Integer entries)
+    public ResponseEntity getStockCard(@PathVariable Long facilityId,
+                                       @PathVariable Long productId,
+                                       @RequestParam(value = "entries", defaultValue = "1")Integer entries,
+                                       @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots)
     {
         StockCard stockCard = stockCardRepository.getStockCardByFacilityAndProduct(facilityId, productId);
 
-        if (stockCard != null) {
-            filterEntries(stockCard, entries);
+        if (stockCard != null)
+        {
+            filterEntries(stockCard, entries, includeEmptyLots);
             return OpenLmisResponse.response(stockCard);
         }
         else {
@@ -138,11 +138,13 @@ public class StockCardController extends BaseController
                     "get in the result.</li>" +
                     "</ul>")
     public ResponseEntity getStockCardById(@PathVariable Long facilityId, @PathVariable Long stockCardId,
-                                           @RequestParam(value = "entries", defaultValue = "1")Integer entries) {
+                                           @RequestParam(value = "entries", defaultValue = "1")Integer entries,
+                                           @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots)
+    {
         StockCard stockCard = service.getStockCardById(facilityId, stockCardId);
 
         if (stockCard != null) {
-            filterEntries(stockCard, entries);
+            filterEntries(stockCard, entries, includeEmptyLots);
             return OpenLmisResponse.response(stockCard);
         }
         else {
@@ -166,8 +168,10 @@ public class StockCardController extends BaseController
                     "stock cards.</li>" +
                     "</ul>")
     public ResponseEntity getStockCards(@PathVariable Long facilityId,
-                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries,
-                                        @RequestParam(value = "countOnly", defaultValue = "false")Boolean countOnly) {
+                                        @RequestParam(value = "entries", defaultValue = "1") Integer entries,
+                                        @RequestParam(value = "countOnly", defaultValue = "false") Boolean countOnly,
+                                        @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots)
+    {
         List<StockCard> stockCards = service.getStockCards(facilityId);
 
         if (countOnly) {
@@ -176,7 +180,7 @@ public class StockCardController extends BaseController
 
         if (stockCards != null) {
             for (StockCard stockCard : stockCards) {
-                filterEntries(stockCard, entries);
+                filterEntries(stockCard, entries, includeEmptyLots);
             }
             return OpenLmisResponse.response("stockCards", stockCards);
         }
@@ -342,7 +346,26 @@ public class StockCardController extends BaseController
         return OpenLmisResponse.success("Stock adjusted");
     }
 
-    private void filterEntries(StockCard stockCard, Integer entryCount) {
+
+
+    //Calls filterEntries() for each specified stockCard
+    private void filterEntries(List<StockCard> stockCards, Integer entryCount, boolean includeEmptyLots)
+    {
+        for (StockCard stockCard : stockCards) {
+            filterEntries(stockCard, entryCount, includeEmptyLots);
+        }
+    }
+
+    //Convenience method, calling TruncateStockCardEntries() and removeEmptyLotsFromStockCard()
+    private void filterEntries(StockCard stockCard, Integer entryCount, boolean includeEmptyLots)
+    {
+        TruncateStockCardEntries(stockCard, entryCount);
+        if(!includeEmptyLots)
+            removeEmptyLotsFromStockCard(stockCard);
+    }
+
+    //Filter stockCard.entries such that it contains only the first entryCount number of items
+    private void TruncateStockCardEntries(StockCard stockCard, Integer entryCount) {
         List<StockCardEntry> entries = stockCard.getEntries();
         if (entries != null) {
             if (entryCount < 0) {
@@ -352,4 +375,22 @@ public class StockCardController extends BaseController
             }
         }
     }
+
+
+    //Filter stockCard such that only contains Lots that have a positive quantityOnHand
+    private void removeEmptyLotsFromStockCard(StockCard stockCard)
+    {
+        //Build a list of nonEmptyLots...
+        List<LotOnHand> nonEmptyLots = new LinkedList<LotOnHand>();
+        for (LotOnHand lot : stockCard.getLotsOnHand())
+        {
+            if(lot.getQuantityOnHand() > 0)
+                nonEmptyLots.add(lot);
+        }
+
+        //...and associate it with our StockCard
+        stockCard.setLotsOnHand(nonEmptyLots);
+    }
+
+
 }
