@@ -19,6 +19,7 @@ import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
 import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
+import org.openlmis.stockmanagement.util.MaxRecordedStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +62,7 @@ public class StockCardService {
     LotOnHand lotOnHand = lotRepository.getLotOnHandByStockCardAndLotObject(stockCard.getId(), lot);
     if (null == lotOnHand) {
       Lot l = lotRepository.getOrCreateLot(lot);
-      lotOnHand = LotOnHand.createZeroedLotOnHand(l, stockCard);
+      lotOnHand = LotOnHand.createZeroedLotOnHand(l, stockCard, new MaxRecordedStrategy());
       lotRepository.saveLotOnHand(lotOnHand);
     }
 
