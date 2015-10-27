@@ -4,7 +4,9 @@ import com.natpryce.makeiteasy.Instantiator;
 import com.natpryce.makeiteasy.Property;
 import com.natpryce.makeiteasy.PropertyLookup;
 import org.joda.time.DateTime;
+import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.dto.StockEvent;
+import org.openlmis.stockmanagement.dto.StockEventType;
 
 import static com.natpryce.makeiteasy.Property.newProperty;
 
@@ -16,13 +18,14 @@ public class StockEventBuilder {
   private static final DateTime DEFAULT_OCCURRED = new DateTime();
   private static final Long DEFAULT_QUANTITY = 100L;
   private static final String DEFAULT_REASON_NAME = "some reason";
-
+  private static final StockEventType DEFAULT_STOCK_TYPE = StockEventType.ADJUSTMENT;
 
   public static final Property<StockEvent, Long> facilityId = newProperty();
   public static final Property<StockEvent, String> productCode = newProperty();
   public static final Property<StockEvent, Long> quantity = newProperty();
   public static final Property<StockEvent, String> reasonName = newProperty();
   public static final Property<StockEvent, DateTime> occurred = newProperty();
+  public static final Property<StockEvent, StockEventType> type = newProperty();
 
   public static final Instantiator<StockEvent> defaultStockEvent = new Instantiator<StockEvent>() {
     @Override
@@ -33,6 +36,7 @@ public class StockEventBuilder {
       stockEvent.setQuantity(lookup.valueOf(quantity, DEFAULT_QUANTITY));
       stockEvent.setReasonName(lookup.valueOf(reasonName, DEFAULT_REASON_NAME));
       stockEvent.setOccurred(lookup.valueOf(occurred, DEFAULT_OCCURRED));
+      stockEvent.setType(lookup.valueOf(type, DEFAULT_STOCK_TYPE));
       return stockEvent;
     }
   };

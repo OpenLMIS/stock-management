@@ -30,6 +30,7 @@ import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.db.categories.UnitTests;
 import org.openlmis.stockmanagement.domain.*;
 import org.openlmis.stockmanagement.dto.StockEvent;
+import org.openlmis.stockmanagement.dto.StockEventType;
 import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.openlmis.stockmanagement.service.StockCardService;
@@ -125,8 +126,9 @@ public class StockCardControllerTest {
     reason.setName(reasonName);
 
     event = new StockEvent();
-    event.setFacilityId(fId);
     event.setProductCode(pCode);
+    event.setType(StockEventType.ADJUSTMENT);
+//    event.setFacilityId(fId);
     event.setReasonName(reasonName);
     event.setQuantity(10L);
   }
@@ -149,7 +151,7 @@ public class StockCardControllerTest {
     List<StockEvent> events = Collections.emptyList();
     long facilityId = 1;
 
-    ResponseEntity response = controller.adjustStock(facilityId, events, request);
+    ResponseEntity response = controller.processStock(facilityId, events, request);
     assertThat(response.getStatusCode(),
         is(HttpStatus.OK));
   }
@@ -159,7 +161,7 @@ public class StockCardControllerTest {
     List<StockEvent> events = Collections.singletonList(new StockEvent());
     long facilityId = 1;
 
-    ResponseEntity response = controller.adjustStock(facilityId, events, request);
+    ResponseEntity response = controller.processStock(facilityId, events, request);
     assertThat(response.getStatusCode(),
         is(HttpStatus.BAD_REQUEST));
   }
@@ -174,7 +176,7 @@ public class StockCardControllerTest {
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
     when(service.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
     when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(null);
-    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
+    ResponseEntity response = controller.processStock(fId, Collections.singletonList(event), request);
 
     // verify
     StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
@@ -183,107 +185,4 @@ public class StockCardControllerTest {
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
 
-  @Test
-  public void shouldErrorWithInvalidLotId() {
-    setupEvent();
-    lotId = 1;
-    event.setLotId(lotId);
-
-    // test
-    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
-    when(productService.getByCode(pCode)).thenReturn(defaultProduct);
-    when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
-    when(service.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
-    when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(null);
-    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
-
-    // verify
-    assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  public void shouldSucceedWithValidLotId() {
-    lotId = 1;
-    setupEvent();
-    setupLot();
-    event.setLotId(lotId);
-
-    // test
-    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
-    when(productService.getByCode(pCode)).thenReturn(defaultProduct);
-    when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
-    when(service.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
-    when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(lotOnHand);
-    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
-
-    // verify
-    StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
-    entry.setAdjustmentReason(reason);
-    entry.setLotOnHand(lotOnHand);
-    verify(service).addStockCardEntries(Collections.singletonList(entry));
-    assertThat(response.getStatusCode(), is(HttpStatus.OK));
-  }
-
-  @Test
-  public void shouldErrorWithStockCardAndLotNotFound() {
-    lotId = 1;
-    setupEvent();
-    event.setLotId(lotId);
-
-    // test
-    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
-    when(productService.getByCode(pCode)).thenReturn(defaultProduct);
-    when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
-    when(service.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
-    when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(null);
-    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
-
-    // verify
-    assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  public void shouldSucceedWithValidLotObject() {
-    setupEvent();
-    setupLot();
-
-    // test
-    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
-    when(productService.getByCode(pCode)).thenReturn(defaultProduct);
-    when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
-    when(service.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
-    when(service.getOrCreateLotOnHand(lot, dummyCard)).thenReturn(lotOnHand);
-    ResponseEntity response = controller.adjustStock(fId, Collections.singletonList(event), request);
-
-    // verify
-    StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
-    entry.setAdjustmentReason(reason);
-    entry.setLotOnHand(lotOnHand);
-    verify(service).addStockCardEntries(Collections.singletonList(entry));
-    assertThat(response.getStatusCode(), is(HttpStatus.OK));
-  }
-
-  @Test
-  public void shouldErrorIfProductCodeDoesNotExist() {
-    fId = defaultFacility.getId();
-    reasonName = "dummyReason";
-    reason = new StockAdjustmentReason();
-    reason.setAdditive(false);
-    reason.setName(reasonName);
-
-    event = new StockEvent();
-    event.setFacilityId(fId);
-    event.setProductCode("invalid_code");
-    event.setReasonName(reasonName);
-    event.setQuantity(10L);
-
-    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
-    when(productService.getByCode(pCode)).thenReturn(null);
-    when(messageService.message("error.product.unknown")).thenReturn("Unknown product");
-    ResponseEntity<OpenLmisResponse> expected_response = OpenLmisResponse.error("Unknown product", HttpStatus.BAD_REQUEST);
-
-    ResponseEntity actual_response = controller.adjustStock(fId, Collections.singletonList(event), request);
-    assertThat(actual_response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
-    assertEquals(expected_response.getBody().getData(), ((ResponseEntity<OpenLmisResponse>) actual_response).getBody().getData());
-  }
 }

@@ -13,9 +13,7 @@ import org.openlmis.core.domain.Product;
 import org.openlmis.core.repository.ProductRepository;
 import org.openlmis.core.service.FacilityService;
 import org.openlmis.db.categories.UnitTests;
-import org.openlmis.stockmanagement.domain.Lot;
-import org.openlmis.stockmanagement.domain.LotOnHand;
-import org.openlmis.stockmanagement.domain.StockCard;
+import org.openlmis.stockmanagement.domain.*;
 import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -25,8 +23,7 @@ import java.util.Date;
 
 import static com.natpryce.makeiteasy.MakeItEasy.*;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
 @Category(UnitTests.class)
@@ -110,8 +107,76 @@ public class StockCardServiceTest {
     }
 
     @Test
-    public void shouldCallRepositoryGetOrCreateStockCardWithProductCode() {
-        service.getOrCreateStockCard(defaultFacility.getId(), defaultProduct.getCode());
-        verify(repository, times(1)).getOrCreateStockCard(defaultFacility.getId(), defaultProduct.getCode());
+    public void shouldReturnNullLotOnHandWithNoLotInfo() {
+        StringBuilder str = new StringBuilder();
+
+        LotOnHand lotOnHand = service.getLotOnHand(null, null, defaultProduct.getCode(), dummyCard, str);
+
+        // verify
+        assertNull(lotOnHand);
+    }
+
+    @Test
+    public void shouldErrorWithInvalidLotId() {
+        long lotId = 1;
+        StringBuilder str = new StringBuilder();
+
+        when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(null);
+        LotOnHand lotOnHand = service.getLotOnHand(lotId, null, defaultProduct.getCode(), dummyCard, str);
+
+        // verify
+        assertNull(lotOnHand);
+        assertEquals(str.toString(), "error.lot.unknown");
+    }
+
+    @Test
+    public void shouldGetLotOnHandWithValidLotId() {
+        long lotId = 1;
+        StringBuilder str = new StringBuilder();
+
+        // test
+        when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(expectedLotOnHand);
+        LotOnHand lotOnHand = service.getLotOnHand(lotId, null, defaultProduct.getCode(), dummyCard, str);
+
+        // verify
+        assertEquals(expectedLotOnHand, lotOnHand);
+    }
+
+    @Test
+    public void shouldErrorWithInvalidLotObject() {
+        StringBuilder str = new StringBuilder();
+        lot.setLotCode("");
+
+        // test
+        LotOnHand lotOnHand = service.getLotOnHand(null, lot, defaultProduct.getCode(), dummyCard, str);
+
+        // verify
+        assertNull(lotOnHand);
+        assertEquals(str.toString(), "error.lot.invalid");
+    }
+
+//    @Test
+//    public void shouldErrorWithStockCardAndLotNotFound() {
+//        StringBuilder str = new StringBuilder();
+//
+//        // test
+//        when(service.getOrCreateLotOnHand(lot, dummyCard)).thenReturn(null);
+//        LotOnHand lotOnHand = service.getLotOnHand(null, lot, defaultProduct.getId(), dummyCard, str);
+//
+//        // verify
+//        assertNull(lotOnHand);
+//    }
+
+    @Test
+    public void shouldSucceedWithValidLotObject() {
+        StringBuilder str = new StringBuilder();
+
+        // test
+        when(lotRepository.getLotOnHandByStockCardAndLotObject(dummyCard.getId(), lot)).thenReturn(expectedLotOnHand);
+        when(service.getOrCreateLotOnHand(lot, dummyCard)).thenReturn(expectedLotOnHand);
+        LotOnHand lotOnHand = service.getLotOnHand(null, lot, defaultProduct.getCode(), dummyCard, str);
+
+        // verify
+        assertEquals(expectedLotOnHand, lotOnHand);
     }
 }

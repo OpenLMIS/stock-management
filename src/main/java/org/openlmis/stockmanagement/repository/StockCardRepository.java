@@ -7,6 +7,7 @@ import org.openlmis.core.repository.FacilityRepository;
 import org.openlmis.core.repository.ProductRepository;
 import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
+import org.openlmis.stockmanagement.domain.StockCardEntryKV;
 import org.openlmis.stockmanagement.repository.mapper.StockCardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -73,6 +74,9 @@ public class StockCardRepository {
       throw new IllegalArgumentException("Already persisted stock card entries can not be saved " +
           "as persisted entry is immutable");
     mapper.insertEntry(entry);
+    for (StockCardEntryKV item : entry.getKeyValues()) {
+      mapper.insertEntryKeyValue(entry, item.getKeyColumn(), item.getValueColumn());
+    }
   }
 
   public void updateStockCard(StockCard card) {

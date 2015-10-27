@@ -3,10 +3,7 @@ package org.openlmis.stockmanagement.repository.mapper;
 import org.apache.ibatis.annotations.*;
 import org.openlmis.core.domain.Facility;
 import org.openlmis.core.domain.Product;
-import org.openlmis.stockmanagement.domain.Lot;
-import org.openlmis.stockmanagement.domain.LotOnHand;
-import org.openlmis.stockmanagement.domain.StockCard;
-import org.openlmis.stockmanagement.domain.StockCardEntry;
+import org.openlmis.stockmanagement.domain.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -66,11 +63,21 @@ public interface StockCardMapper {
       " FROM stock_card_entries" +
       " WHERE stockcardid = #{stockCardId}" +
       " ORDER BY createddate DESC")
+  @Results({
+      @Result(property = "keyValues", column = "id", javaType = List.class,
+          many = @Many(select = "getEntryKeyValues"))
+  })
   List<StockCardEntry> getEntries(@Param("stockCardId")Long stockCardId);
 
-  @Select("SELECT *" +
-      " FROM lots_on_hand" +
-      " WHERE stockcardid = #{stockCardId}")
+  @Select("SELECT keycolumn" +
+          ", valuecolumn" +
+          " FROM stock_card_entry_key_values" +
+          " WHERE stockcardentryid = #{stockCardEntryId}")
+  List<StockCardEntryKV> getEntryKeyValues(@Param("stockCardEntryId")Long stockCardEntryId);
+
+  @Select("SELECT loh.*" +
+          " FROM lots_on_hand loh" +
+          " WHERE loh.stockcardid = #{stockCardId}")
   @Results({
       @Result(
           property = "lot", column = "lotId", javaType = Lot.class,
@@ -122,6 +129,22 @@ public interface StockCardMapper {
       ", NOW() )")
   @Options(useGeneratedKeys = true)
   int insertEntry(StockCardEntry entry);
+
+  @Insert("INSERT INTO stock_card_entry_key_values (stockcardentryid" +
+      ", keycolumn" +
+      ", valuecolumn" +
+      ", createdBy" +
+      ", createdDate" +
+      ", modifiedBy" +
+      ", modifiedDate)" +
+      " VALUES (#{entry.id}" +
+      ", #{key}" +
+      ", #{value}" +
+      ", #{entry.createdBy}" +
+      ", NOW()" +
+      ", #{entry.modifiedBy}" +
+      ", NOW())")
+  int insertEntryKeyValue(@Param("entry")StockCardEntry entry, @Param("key")String key, @Param("value")String value);
 
   @Update("UPDATE stock_cards " +
       "SET totalQuantityOnHand = #{totalQuantityOnHand}" +
