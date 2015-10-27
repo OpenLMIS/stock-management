@@ -31,7 +31,7 @@ public class StockEvent {
 
   private StockEventType type;
   private Long facilityId;
-  private String productCode;
+  private Long productId;
 
   @JsonDeserialize(using= DateTimeDeserializer.class)
   private DateTime occurred;
@@ -44,7 +44,7 @@ public class StockEvent {
 
   public StockEvent() {
     facilityId = null;
-    productCode = null;
+    productId = null;
     occurred = LocalDateTime.now().toDateTime();
     quantity = null;
     lotId = null;
@@ -64,7 +64,7 @@ public class StockEvent {
   }
 
   public boolean isValid() {
-    if( null == productCode
+    if(null == productId
       || null == quantity)
       return false;
 
