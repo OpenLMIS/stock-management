@@ -144,7 +144,7 @@ public class StockCardControllerTest {
   }
 
   //Associate two lots with the specified StockCard - one lot for which we have stockOnHand, and one for which we don't
-  public void addLotsToStockCard(StockCard card)
+  public void associateTestLotsWithStockCard(StockCard card)
   {
     LotOnHand lotWithZeroQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(0L), dummyCard);
 
@@ -219,18 +219,18 @@ public class StockCardControllerTest {
     boolean includeEmptyLots = false;
 
 
-    addLotsToStockCard(dummyCard);
+    associateTestLotsWithStockCard(dummyCard);
     ResponseEntity response = controller.getStockCard(facilityId, productId, numEntries, includeEmptyLots);
     StockCard stockCard = (StockCard)response.getBody();
     assertEquals( 1, stockCard.getLotsOnHand().size());
 
-    addLotsToStockCard(dummyCard);
+    associateTestLotsWithStockCard(dummyCard);
     response = controller.getStockCardById(facilityId, stockCardId, numEntries, includeEmptyLots);
     stockCard = (StockCard)response.getBody();
     assertEquals( 1, stockCard.getLotsOnHand().size());
 
 
-    addLotsToStockCard(dummyCard);
+    associateTestLotsWithStockCard(dummyCard);
     response = controller.getStockCards(facilityId, numEntries, countOnly, includeEmptyLots);
     OpenLmisResponse openLmisResponse = (OpenLmisResponse)response.getBody();
     List<StockCard> stockCards = (List<StockCard>)openLmisResponse.getData().get("stockCards");
@@ -244,17 +244,17 @@ public class StockCardControllerTest {
     includeEmptyLots = true;
 
 
-    addLotsToStockCard(dummyCard);
+    associateTestLotsWithStockCard(dummyCard);
     response = controller.getStockCard(facilityId, productId, numEntries, includeEmptyLots);
     stockCard = (StockCard)response.getBody();
     assertEquals( 2, stockCard.getLotsOnHand().size());
 
-    addLotsToStockCard(dummyCard);
-    controller.getStockCardById(facilityId, stockCardId, numEntries, includeEmptyLots);
+    associateTestLotsWithStockCard(dummyCard);
+    response = controller.getStockCardById(facilityId, stockCardId, numEntries, includeEmptyLots);
     stockCard = (StockCard)response.getBody();
     assertEquals( 2, stockCard.getLotsOnHand().size());
 
-    addLotsToStockCard(dummyCard);
+    associateTestLotsWithStockCard(dummyCard);
     response = controller.getStockCards(facilityId, numEntries, countOnly, includeEmptyLots);
     openLmisResponse = (OpenLmisResponse)response.getBody();
     stockCards = (List<StockCard>)openLmisResponse.getData().get("stockCards");

@@ -356,16 +356,16 @@ public class StockCardController extends BaseController
         }
     }
 
-    //Convenience method, calling TruncateStockCardEntries() and removeEmptyLotsFromStockCard()
+    //Convenience method, calling truncateStockCardEntries() and removeEmptyLotsFromStockCard()
     private void filterEntries(StockCard stockCard, Integer entryCount, boolean includeEmptyLots)
     {
-        TruncateStockCardEntries(stockCard, entryCount);
+        truncateStockCardEntries(stockCard, entryCount);
         if(!includeEmptyLots)
             removeEmptyLotsFromStockCard(stockCard);
     }
 
     //Filter stockCard.entries such that it contains only the first entryCount number of items
-    private void TruncateStockCardEntries(StockCard stockCard, Integer entryCount) {
+    private void truncateStockCardEntries(StockCard stockCard, Integer entryCount) {
         List<StockCardEntry> entries = stockCard.getEntries();
         if (entries != null) {
             if (entryCount < 0) {
