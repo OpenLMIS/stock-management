@@ -16,6 +16,14 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.openlmis.db.categories.UnitTests;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 @Category(UnitTests.class)
 @PowerMockRunnerDelegate(BlockJUnit4ClassRunner.class)
 public class StockCardEntryTest {
@@ -28,5 +36,28 @@ public class StockCardEntryTest {
   @Test(expected = NullPointerException.class)
   public void shouldErrorOnNullType() {
     new StockCardEntry(new StockCard(), null, 1L);
+  }
+
+  @Test
+  public void shouldGetNullCustomPropsFromEmptyKeyValues() {
+    StockCardEntry entry = new StockCardEntry(new StockCard(), StockCardEntryType.ADJUSTMENT, 1L);
+
+    Map<String, String> customProps = entry.getCustomProps();
+
+    assertNull(customProps);
+  }
+
+  @Test
+  public void shouldGetCustomPropsFromKeyValues() {
+    List<StockCardEntryKV> keyValues = new ArrayList<>();
+    keyValues.add(new StockCardEntryKV("testkey1", "testvalue1", new Date()));
+    keyValues.add(new StockCardEntryKV("testkey2", "testvalue2", new Date()));
+    StockCardEntry entry = new StockCardEntry(new StockCard(), StockCardEntryType.ADJUSTMENT, 1L);
+    entry.setKeyValues(keyValues);
+
+    Map<String, String> customProps = entry.getCustomProps();
+
+    assertEquals(customProps.get("testkey1"), "testvalue1");
+    assertEquals(customProps.get("testkey2"), "testvalue2");
   }
 }

@@ -33,6 +33,7 @@ import org.openlmis.stockmanagement.dto.StockEventType;
 import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.openlmis.stockmanagement.service.StockCardService;
+import org.openlmis.stockmanagement.util.MaxRecordedStrategy;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.http.HttpStatus;
@@ -141,7 +142,7 @@ public class StockCardControllerTest {
     lot.setExpirationDate(new Date());
     event.setLot(lot);
 
-    lotOnHand = LotOnHand.createZeroedLotOnHand(lot, dummyCard);
+    lotOnHand = LotOnHand.createZeroedLotOnHand(lot, dummyCard, new MaxRecordedStrategy());
   }
 
   @Test
