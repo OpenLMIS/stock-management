@@ -56,7 +56,7 @@ public class StockCardServiceTest {
 
     static  {
         defaultFacility = make(a(FacilityBuilder.defaultFacility, with(FacilityBuilder.facilityId, 1L)));
-        defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.productId, 1L)));
+        defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.code, "CODE")));
         dummyCard = StockCard.createZeroedStockCard(defaultFacility, defaultProduct);
     }
 
@@ -110,7 +110,7 @@ public class StockCardServiceTest {
     public void shouldReturnNullLotOnHandWithNoLotInfo() {
         StringBuilder str = new StringBuilder();
 
-        LotOnHand lotOnHand = service.getLotOnHand(null, null, defaultProduct.getId(), dummyCard, str);
+        LotOnHand lotOnHand = service.getLotOnHand(null, null, defaultProduct.getCode(), dummyCard, str);
 
         // verify
         assertNull(lotOnHand);
@@ -122,7 +122,7 @@ public class StockCardServiceTest {
         StringBuilder str = new StringBuilder();
 
         when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(null);
-        LotOnHand lotOnHand = service.getLotOnHand(lotId, null, defaultProduct.getId(), dummyCard, str);
+        LotOnHand lotOnHand = service.getLotOnHand(lotId, null, defaultProduct.getCode(), dummyCard, str);
 
         // verify
         assertNull(lotOnHand);
@@ -136,7 +136,7 @@ public class StockCardServiceTest {
 
         // test
         when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(expectedLotOnHand);
-        LotOnHand lotOnHand = service.getLotOnHand(lotId, null, defaultProduct.getId(), dummyCard, str);
+        LotOnHand lotOnHand = service.getLotOnHand(lotId, null, defaultProduct.getCode(), dummyCard, str);
 
         // verify
         assertEquals(expectedLotOnHand, lotOnHand);
@@ -148,7 +148,7 @@ public class StockCardServiceTest {
         lot.setLotCode("");
 
         // test
-        LotOnHand lotOnHand = service.getLotOnHand(null, lot, defaultProduct.getId(), dummyCard, str);
+        LotOnHand lotOnHand = service.getLotOnHand(null, lot, defaultProduct.getCode(), dummyCard, str);
 
         // verify
         assertNull(lotOnHand);
@@ -174,7 +174,7 @@ public class StockCardServiceTest {
         // test
         when(lotRepository.getLotOnHandByStockCardAndLotObject(dummyCard.getId(), lot)).thenReturn(expectedLotOnHand);
         when(service.getOrCreateLotOnHand(lot, dummyCard)).thenReturn(expectedLotOnHand);
-        LotOnHand lotOnHand = service.getLotOnHand(null, lot, defaultProduct.getId(), dummyCard, str);
+        LotOnHand lotOnHand = service.getLotOnHand(null, lot, defaultProduct.getCode(), dummyCard, str);
 
         // verify
         assertEquals(expectedLotOnHand, lotOnHand);

@@ -26,6 +26,7 @@ import org.openlmis.core.repository.FacilityRepository;
 import org.openlmis.core.repository.StockAdjustmentReasonRepository;
 import org.openlmis.core.service.MessageService;
 import org.openlmis.core.service.ProductService;
+import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.db.categories.UnitTests;
 import org.openlmis.stockmanagement.domain.*;
 import org.openlmis.stockmanagement.dto.StockEvent;
@@ -46,6 +47,7 @@ import java.util.List;
 
 import static com.natpryce.makeiteasy.MakeItEasy.*;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -87,7 +89,7 @@ public class StockCardControllerTest {
   private static final MockHttpSession session = new MockHttpSession();
 
   private long fId;
-  private long pId;
+  private String pCode;
   private String reasonName;
   private StockAdjustmentReason reason;
   private StockEvent event;
@@ -97,7 +99,7 @@ public class StockCardControllerTest {
 
   static  {
     defaultFacility = make(a(FacilityBuilder.defaultFacility, with(FacilityBuilder.facilityId, 1L)));
-    defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.productId, 1L)));
+    defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.code, "valid_code")));
     dummyCard = StockCard.createZeroedStockCard(defaultFacility, defaultProduct);
   }
 
@@ -116,7 +118,7 @@ public class StockCardControllerTest {
 
   public void setupEvent() {
     fId = defaultFacility.getId();
-    pId = defaultProduct.getId();
+    pCode = defaultProduct.getCode();
     reasonName = "dummyReason";
 
     reason = new StockAdjustmentReason();
@@ -124,9 +126,9 @@ public class StockCardControllerTest {
     reason.setName(reasonName);
 
     event = new StockEvent();
+    event.setProductCode(pCode);
     event.setType(StockEventType.ADJUSTMENT);
 //    event.setFacilityId(fId);
-    event.setProductId(pId);
     event.setReasonName(reasonName);
     event.setQuantity(10L);
   }
@@ -170,9 +172,9 @@ public class StockCardControllerTest {
 
     // test
     when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
-    when(productService.getById(pId)).thenReturn(defaultProduct);
+    when(productService.getByCode(pCode)).thenReturn(defaultProduct);
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
-    when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
+    when(service.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
     when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(null);
     ResponseEntity response = controller.processStock(fId, Collections.singletonList(event), request);
 
@@ -182,4 +184,5 @@ public class StockCardControllerTest {
     verify(service).addStockCardEntries(Collections.singletonList(entry));
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
+
 }
