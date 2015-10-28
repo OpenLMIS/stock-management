@@ -100,7 +100,7 @@ public class StockCardController extends BaseController
                     "<p>Path parameters (required):" +
                     "<ul>" +
                     "<li><strong>facilityId</strong> (Long) - facility for the stock card.</li>" +
-                    "<li><strong>productId</strong> (Long) - product for the stock card.</li>" +
+                    "<li><strong>productCode</strong> (String) - product for the stock card.</li>" +
                     "</ul>" +
                     "<p>" +
                     "<p>Request parameters:" +
