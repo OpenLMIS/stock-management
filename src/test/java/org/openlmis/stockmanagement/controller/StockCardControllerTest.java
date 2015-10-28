@@ -89,14 +89,14 @@ public class StockCardControllerTest {
   private static final MockHttpSession session = new MockHttpSession();
 
   private long fId;
-  private long pId;
+  private String pCode;
   private String reasonName;
   private StockAdjustmentReason reason;
   private StockEvent event;
 
   static  {
     defaultFacility = make(a(FacilityBuilder.defaultFacility, with(FacilityBuilder.facilityId, 1L)));
-    defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.productId, 1L)));
+    defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.code, "valid_code")));
     dummyCard = StockCard.createZeroedStockCard(defaultFacility, defaultProduct);
   }
 
@@ -115,7 +115,7 @@ public class StockCardControllerTest {
 
   public void setupEvent() {
     fId = defaultFacility.getId();
-    pId = defaultProduct.getId();
+    pCode = defaultProduct.getCode();
     reasonName = "dummyReason";
 
     reason = new StockAdjustmentReason();
@@ -123,9 +123,9 @@ public class StockCardControllerTest {
     reason.setName(reasonName);
 
     event = new StockEvent();
+    event.setProductCode(pCode);
     event.setType(StockEventType.ADJUSTMENT);
 //    event.setFacilityId(fId);
-    event.setProductId(pId);
     event.setReasonName(reasonName);
     event.setQuantity(10L);
   }
@@ -175,7 +175,7 @@ public class StockCardControllerTest {
 
     ResponseEntity response = controller.processStock(facilityId, events, request);
     assertThat(response.getStatusCode(),
-        is(HttpStatus.BAD_REQUEST));
+            is(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -184,9 +184,9 @@ public class StockCardControllerTest {
 
     // test
     when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
-    when(productService.getById(pId)).thenReturn(defaultProduct);
+    when(productService.getByCode(pCode)).thenReturn(defaultProduct);
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
-    when(stockCardService.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
+    when(stockCardService.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
     when(lotRepository.getLotOnHandByStockCardAndLot(eq(dummyCard.getId()), any(Long.class))).thenReturn(null);
     ResponseEntity response = controller.processStock(fId, Collections.singletonList(event), request);
 
@@ -197,18 +197,17 @@ public class StockCardControllerTest {
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
 
-
   @Test
   public void shouldOnlyReturnEmptyLotsWhenRequested()
   {
     //Arbitrary values
     Long facilityId = 1L;
-    Long productId = 2L;
+    String productCode = "2";
     Long stockCardId = 3L;
     Integer numEntries = 100;
     Boolean countOnly = false;
 
-    when(stockCardRepository.getStockCardByFacilityAndProduct(any(Long.class), any(Long.class))).thenReturn(dummyCard);
+    when(stockCardRepository.getStockCardByFacilityAndProduct(any(Long.class), any(String.class))).thenReturn(dummyCard);
     when(stockCardService.getStockCardById(any(Long.class), any(Long.class))).thenReturn(dummyCard);
     when(stockCardService.getStockCards(any(Long.class))).thenReturn(new LinkedList<StockCard>(Arrays.asList(dummyCard)));
 
@@ -220,7 +219,7 @@ public class StockCardControllerTest {
 
 
     associateTestLotsWithStockCard(dummyCard);
-    ResponseEntity response = controller.getStockCard(facilityId, productId, numEntries, includeEmptyLots);
+    ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
     StockCard stockCard = (StockCard)response.getBody();
     assertEquals( 1, stockCard.getLotsOnHand().size());
 
@@ -245,7 +244,7 @@ public class StockCardControllerTest {
 
 
     associateTestLotsWithStockCard(dummyCard);
-    response = controller.getStockCard(facilityId, productId, numEntries, includeEmptyLots);
+    response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
     stockCard = (StockCard)response.getBody();
     assertEquals( 2, stockCard.getLotsOnHand().size());
 

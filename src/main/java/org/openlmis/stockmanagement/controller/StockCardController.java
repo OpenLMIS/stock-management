@@ -91,13 +91,13 @@ public class StockCardController extends BaseController
 
     //TODO: Determine what the permissions associated with @PreAuthorize should be. (MANAGE_PROGRAM_PRODUCT, below, is just a placeholder).
 
-    @RequestMapping(value = "facilities/{facilityId}/products/{productId}/stockCard", method = GET, headers = ACCEPT_JSON)
+    @RequestMapping(value = "facilities/{facilityId}/products/{productCode}/stockCard", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about the stock card for the specified facility and product.",
             notes = "Gets stock card information, by facility and product." +
                     "<p>Path parameters (required):" +
                     "<ul>" +
                     "<li><strong>facilityId</strong> (Long) - facility for the stock card.</li>" +
-                    "<li><strong>productId</strong> (Long) - product for the stock card.</li>" +
+                    "<li><strong>productCode</strong> (String) - product for the stock card.</li>" +
                     "</ul>" +
                     "<p>" +
                     "<p>Request parameters:" +
@@ -106,11 +106,11 @@ public class StockCardController extends BaseController
                     "get in the result.</li>" +
                     "</ul>")
     public ResponseEntity getStockCard(@PathVariable Long facilityId,
-                                       @PathVariable Long productId,
+                                       @PathVariable String productCode,
                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries,
                                        @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots)
     {
-        StockCard stockCard = stockCardRepository.getStockCardByFacilityAndProduct(facilityId, productId);
+        StockCard stockCard = stockCardRepository.getStockCardByFacilityAndProduct(facilityId, productCode);
 
         if (stockCard != null)
         {
@@ -284,8 +284,8 @@ public class StockCardController extends BaseController
                 return OpenLmisResponse.error("Invalid stock event", HttpStatus.BAD_REQUEST);
 
             // validate product
-            long productId = event.getProductId();
-            if(null == productService.getById(productId))
+            String productCode = event.getProductCode();
+            if(null == productService.getByCode(productCode))
                 return OpenLmisResponse.error(messageService.message("error.product.unknown"), HttpStatus.BAD_REQUEST);
 
             // validate reason
@@ -300,7 +300,7 @@ public class StockCardController extends BaseController
 
             // get or create stock card
             //TODO:  this call might create a stock card if it doesn't exist, need to implement permission check
-            StockCard card = service.getOrCreateStockCard(facilityId, productId);
+            StockCard card = service.getOrCreateStockCard(facilityId, productCode);
             if(null == card)
                 return OpenLmisResponse.error("Unable to get/create stock card for facility and product",
                     HttpStatus.INTERNAL_SERVER_ERROR);
@@ -309,7 +309,7 @@ public class StockCardController extends BaseController
             StringBuilder str = new StringBuilder();
             Long lotId = event.getLotId();
             Lot lotObj = event.getLot();
-            LotOnHand lotOnHand = service.getLotOnHand(lotId, lotObj, productId, card, str);
+            LotOnHand lotOnHand = service.getLotOnHand(lotId, lotObj, productCode, card, str);
             if (!str.toString().equals("")) {
                 return OpenLmisResponse.error(messageService.message(str.toString()), HttpStatus.BAD_REQUEST);
             }
