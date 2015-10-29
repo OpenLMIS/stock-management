@@ -71,6 +71,7 @@ public interface StockCardMapper {
 
   @Select("SELECT keycolumn" +
           ", valuecolumn" +
+          ", modifieddate AS recordeddate" +
           " FROM stock_card_entry_key_values" +
           " WHERE stockcardentryid = #{stockCardEntryId}")
   List<StockCardEntryKV> getEntryKeyValues(@Param("stockCardEntryId")Long stockCardEntryId);
@@ -80,10 +81,21 @@ public interface StockCardMapper {
           " WHERE loh.stockcardid = #{stockCardId}")
   @Results({
       @Result(
+          property = "keyValues", column = "id", javaType = List.class,
+          one = @One(select = "getLotOnHandKeyValues")),
+      @Result(
           property = "lot", column = "lotId", javaType = Lot.class,
           one = @One(select = "org.openlmis.stockmanagement.repository.mapper.LotMapper.getById"))
   })
   List<LotOnHand> getLotsOnHand(@Param("stockCardId")Long stockCardId);
+
+  @Select("SELECT scekv.keycolumn" +
+          ", scekv.valuecolumn" +
+          ", scekv.modifieddate AS recordeddate" +
+          " FROM stock_card_entries sce" +
+          "   JOIN stock_card_entry_key_values scekv ON scekv.stockcardentryid = sce.id" +
+          " WHERE lotonhandid = #{lotOnHandId}")
+  List<StockCardEntryKV> getLotOnHandKeyValues(@Param("lotOnHandId")Long lotOnHandId);
 
   @Insert("INSERT INTO stock_cards (facilityId" +
       ", productId" +
