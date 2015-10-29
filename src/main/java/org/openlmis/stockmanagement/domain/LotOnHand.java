@@ -10,11 +10,10 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.collections.Transformer;
-import org.apache.commons.collections.TransformerUtils;
 import org.apache.commons.collections.list.SetUniqueList;
 import org.openlmis.core.domain.BaseModel;
 import org.openlmis.core.serializer.DateDeserializer;
-import org.openlmis.stockmanagement.util.MaxRecordedStrategy;
+import org.openlmis.stockmanagement.util.LatestRecordedStrategy;
 import org.openlmis.stockmanagement.util.StockCardEntryKVReduceStrategy;
 
 import java.util.*;
@@ -55,7 +54,7 @@ public class LotOnHand extends BaseModel {
 
   public Map<String, String> getCustomProps() {
     Map<String, String> customProps = new HashMap<>();
-    if (null == strategy) strategy = new MaxRecordedStrategy();
+    if (null == strategy) strategy = new LatestRecordedStrategy();
 
     // Get just the keys in the key-value list
     Collection keys = CollectionUtils.collect(keyValues, new Transformer() {

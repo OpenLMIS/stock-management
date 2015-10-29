@@ -16,7 +16,7 @@ import org.openlmis.db.categories.UnitTests;
 import org.openlmis.stockmanagement.domain.*;
 import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
-import org.openlmis.stockmanagement.util.MaxRecordedStrategy;
+import org.openlmis.stockmanagement.util.LatestRecordedStrategy;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
@@ -80,7 +80,7 @@ public class StockCardServiceTest {
         createdLot.setManufactureDate(lot.getManufactureDate());
         createdLot.setExpirationDate(lot.getExpirationDate());
 
-        expectedLotOnHand = LotOnHand.createZeroedLotOnHand(lot, dummyCard, new MaxRecordedStrategy());
+        expectedLotOnHand = LotOnHand.createZeroedLotOnHand(lot, dummyCard, new LatestRecordedStrategy());
 
         service = new StockCardService(facilityService,
                 productRepository,

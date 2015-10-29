@@ -34,7 +34,7 @@ import org.openlmis.stockmanagement.dto.StockEventType;
 import org.openlmis.stockmanagement.repository.LotRepository;
 import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.openlmis.stockmanagement.service.StockCardService;
-import org.openlmis.stockmanagement.util.MaxRecordedStrategy;
+import org.openlmis.stockmanagement.util.LatestRecordedStrategy;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.http.HttpStatus;
@@ -147,9 +147,9 @@ public class StockCardControllerTest {
   //Associate two lots with the specified StockCard - one lot for which we have stockOnHand, and one for which we don't
   public void associateTestLotsWithStockCard(StockCard card)
   {
-    LotOnHand lotWithZeroQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(0L), dummyCard, new MaxRecordedStrategy());
+    LotOnHand lotWithZeroQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(0L), dummyCard, new LatestRecordedStrategy());
 
-    LotOnHand lotWithPositiveQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(1L), dummyCard, new MaxRecordedStrategy());
+    LotOnHand lotWithPositiveQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(1L), dummyCard, new LatestRecordedStrategy());
     lotWithPositiveQuantityOnHand.setQuantityOnHand(1L);
 
     List<LotOnHand> lotsOnHand = new LinkedList<>();

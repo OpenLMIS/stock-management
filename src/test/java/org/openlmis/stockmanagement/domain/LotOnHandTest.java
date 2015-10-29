@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.openlmis.db.categories.UnitTests;
-import org.openlmis.stockmanagement.util.MaxRecordedStrategy;
+import org.openlmis.stockmanagement.util.LatestRecordedStrategy;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ public class LotOnHandTest {
         List<StockCardEntryKV> keyValues = new ArrayList<>();
         keyValues.add(new StockCardEntryKV("testkey1", "testvalue1", new Date()));
         keyValues.add(new StockCardEntryKV("testkey2", "testvalue2", new Date()));
-        LotOnHand lotOnHand = LotOnHand.createZeroedLotOnHand(new Lot(), new StockCard(), new MaxRecordedStrategy());
+        LotOnHand lotOnHand = LotOnHand.createZeroedLotOnHand(new Lot(), new StockCard(), new LatestRecordedStrategy());
         lotOnHand.setKeyValues(keyValues);
 
         Map<String, String> customProps = lotOnHand.getCustomProps();
@@ -49,7 +49,7 @@ public class LotOnHandTest {
         keyValues.add(new StockCardEntryKV("testkey1", "testvalue1", new Date(2)));
         keyValues.add(new StockCardEntryKV("testkey1", "testvalue2", new Date(3)));
         keyValues.add(new StockCardEntryKV("testkey1", "testvalue3", new Date(1)));
-        LotOnHand lotOnHand = LotOnHand.createZeroedLotOnHand(new Lot(), new StockCard(), new MaxRecordedStrategy());
+        LotOnHand lotOnHand = LotOnHand.createZeroedLotOnHand(new Lot(), new StockCard(), new LatestRecordedStrategy());
         lotOnHand.setKeyValues(keyValues);
 
         Map<String, String> customProps = lotOnHand.getCustomProps();
@@ -67,7 +67,7 @@ public class LotOnHandTest {
         keyValues.add(new StockCardEntryKV("testkey2", "testvalue2", new Date(2)));
         keyValues.add(new StockCardEntryKV("testkey2", "testvalue3", new Date(3)));
         keyValues.add(new StockCardEntryKV("testkey2", "testvalue1", new Date(1)));
-        LotOnHand lotOnHand = LotOnHand.createZeroedLotOnHand(new Lot(), new StockCard(), new MaxRecordedStrategy());
+        LotOnHand lotOnHand = LotOnHand.createZeroedLotOnHand(new Lot(), new StockCard(), new LatestRecordedStrategy());
         lotOnHand.setKeyValues(keyValues);
 
         Map<String, String> customProps = lotOnHand.getCustomProps();

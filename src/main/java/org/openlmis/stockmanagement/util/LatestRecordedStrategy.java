@@ -5,7 +5,7 @@ import org.openlmis.stockmanagement.domain.StockCardEntryKV;
 import java.util.Date;
 import java.util.List;
 
-public class MaxRecordedStrategy implements StockCardEntryKVReduceStrategy {
+public class LatestRecordedStrategy implements StockCardEntryKVReduceStrategy {
 
     @Override
     public StockCardEntryKV reduce(List<StockCardEntryKV> list) {
