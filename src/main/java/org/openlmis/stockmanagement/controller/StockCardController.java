@@ -209,7 +209,8 @@ public class StockCardController extends BaseController
                     "RECEIPT, ADJUSTMENT).</li>" +
                     "<li><strong>facilityId</strong> (Long, required for ISSUE/RECEIPT types) - facility id where" +
                     "stock is going to/coming from.</li>" +
-                    "<li><strong>productId</strong> (Long, required) - product id of the stock being processed.</li>" +
+                    "<li><strong>productCode</strong> (String, required) - product code of the stock being " +
+                    "processed.</li>" +
                     "<li><strong>quantity</strong> (Long, required) - quantity of stock being processed. Specify as a " +
                     "positive number. For ISSUE, this amount is decremented, for RECEIPT, this amount is incremented, " +
                     "for ADJUSTMENT, it depends on the adjustment reason.</li>" +
@@ -231,7 +232,7 @@ public class StockCardController extends BaseController
                     "[\n" +
                     "    {\n" +
                     "        \"type\": \"ADJUSTMENT\",\n" +
-                    "        \"productId\": 2412,\n" +
+                    "        \"productCode\": \"V001\",\n" +
                     "        \"quantity\": 50,\n" +
                     "        \"reasonName\": \"TRANSFER_IN\",\n" +
                     "        \"lotId\": 1\n" +
@@ -239,7 +240,7 @@ public class StockCardController extends BaseController
                     "    {\n" +
                     "        \"type\": \"ISSUE\",\n" +
                     "        \"facilityId\": 19077,\n" +
-                    "        \"productId\": 2412,\n" +
+                    "        \"productCode\": \"V001\",\n" +
                     "        \"quantity\": 50,\n" +
                     "        \"customProps\": {\n" +
                     "            \"occurred\": \"2015-10-01\"\n" +
@@ -248,7 +249,7 @@ public class StockCardController extends BaseController
                     "    {\n" +
                     "        \"type\": \"RECEIPT\",\n" +
                     "        \"facilityId\": 19074,\n" +
-                    "        \"productId\": 2412,\n" +
+                    "        \"productCode\": \"V001\",\n" +
                     "        \"quantity\": 50,\n" +
                     "        \"lot\": {\n" +
                     "            \"lotCode\": \"C1\",\n" +
