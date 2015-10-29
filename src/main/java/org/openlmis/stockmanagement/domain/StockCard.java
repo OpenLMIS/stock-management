@@ -12,10 +12,11 @@ import org.openlmis.core.domain.Facility;
 import org.openlmis.core.domain.Product;
 import org.openlmis.core.serializer.DateDeserializer;
 import org.openlmis.stockmanagement.dto.StockEvent;
+import org.openlmis.stockmanagement.util.LatestRecordedStrategy;
+import org.openlmis.stockmanagement.util.StockCardEntryKVReduceStrategy;
+import org.openlmis.stockmanagement.util.StockManagementUtils;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
@@ -40,6 +41,12 @@ public class StockCard extends BaseModel {
 
   private List<LotOnHand> lotsOnHand;
 
+  @JsonIgnore
+  private List<StockCardEntryKV> keyValues;
+
+  @JsonIgnore
+  private StockCardEntryKVReduceStrategy strategy;
+
   private StockCard(Facility facility, Product product) {
     Objects.requireNonNull(facility);
     Objects.requireNonNull(product);
@@ -50,10 +57,20 @@ public class StockCard extends BaseModel {
     this.notes = "";
     this.entries = null;
     this.lotsOnHand = null;
+    this.keyValues = new ArrayList<>();
+    this.strategy = null;
   }
 
   public void addToTotalQuantityOnHand(long quantity) {
     this.totalQuantityOnHand += quantity;
+  }
+
+  public Map<String, String> getCustomProps() {
+    if (null == strategy) strategy = new LatestRecordedStrategy();
+
+    Map<String, String> customProps = StockManagementUtils.getKeyValueAggregate(keyValues, strategy);
+
+    return customProps.isEmpty() ? null : customProps;
   }
 
   public static final StockCard createZeroedStockCard(Facility facility, Product product) {

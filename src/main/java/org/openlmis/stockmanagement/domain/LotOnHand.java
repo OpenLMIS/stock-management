@@ -7,14 +7,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.Transformer;
-import org.apache.commons.collections.list.SetUniqueList;
 import org.openlmis.core.domain.BaseModel;
 import org.openlmis.core.serializer.DateDeserializer;
 import org.openlmis.stockmanagement.util.LatestRecordedStrategy;
 import org.openlmis.stockmanagement.util.StockCardEntryKVReduceStrategy;
+import org.openlmis.stockmanagement.util.StockManagementUtils;
 
 import java.util.*;
 
@@ -53,32 +50,9 @@ public class LotOnHand extends BaseModel {
   }
 
   public Map<String, String> getCustomProps() {
-    Map<String, String> customProps = new HashMap<>();
     if (null == strategy) strategy = new LatestRecordedStrategy();
 
-    // Get just the keys in the key-value list
-    Collection keys = CollectionUtils.collect(keyValues, new Transformer() {
-      @Override
-      public Object transform(Object o) {
-        return ((StockCardEntryKV)o).getKeyColumn();
-      }
-    });
-
-    // Get only the unique keys
-    SetUniqueList.decorate((List)keys);
-
-    // Iterate through the keys, getting the sub-list matching the key. Then implement the strategy on the sub-list.
-    // Put the resulting key-value entry into the map.
-    for (final Object item : keys) {
-      List<StockCardEntryKV> subList = (List<StockCardEntryKV>)CollectionUtils.select(keyValues, new Predicate() {
-        @Override
-        public boolean evaluate(Object o) {
-          return ((StockCardEntryKV)o).getKeyColumn().equalsIgnoreCase((String)item);
-        }
-      });
-      StockCardEntryKV entry = strategy.reduce(subList);
-      customProps.put(entry.getKeyColumn(), entry.getValueColumn());
-    }
+    Map<String, String> customProps = StockManagementUtils.getKeyValueAggregate(keyValues, strategy);
 
     return customProps.isEmpty() ? null : customProps;
   }

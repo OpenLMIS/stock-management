@@ -21,6 +21,8 @@ public interface StockCardMapper {
           one = @One(select = "org.openlmis.core.repository.mapper.FacilityMapper.getById")),
       @Result(property = "product", column = "productId", javaType = Product.class,
           one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
+      @Result(property = "keyValues", column = "id", javaType = List.class,
+          one = @One(select = "getStockCardKeyValues")),
       @Result(property = "entries", column = "id", javaType = List.class,
           many = @Many(select = "getEntries")),
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
@@ -38,6 +40,8 @@ public interface StockCardMapper {
           one = @One(select = "org.openlmis.core.repository.mapper.FacilityMapper.getById")),
       @Result(property = "product", column = "productId", javaType = Product.class,
           one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
+      @Result(property = "keyValues", column = "id", javaType = List.class,
+          one = @One(select = "getStockCardKeyValues")),
       @Result(property = "entries", column = "id", javaType = List.class,
           many = @Many(select = "getEntries")),
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
@@ -52,12 +56,22 @@ public interface StockCardMapper {
       @Result(property = "id", column = "id"),
       @Result(property = "product", column = "productId", javaType = Product.class,
           one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
+      @Result(property = "keyValues", column = "id", javaType = List.class,
+          one = @One(select = "getStockCardKeyValues")),
       @Result(property = "entries", column = "id", javaType = List.class,
           many = @Many(select = "getEntries")),
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
           many = @Many(select = "getLotsOnHand"))
   })
   List<StockCard> getAllByFacility(@Param("facilityId")Long facilityId);
+
+  @Select("SELECT scekv.keycolumn" +
+          ", scekv.valuecolumn" +
+          ", scekv.modifieddate AS recordeddate" +
+          " FROM stock_card_entries sce" +
+          "   JOIN stock_card_entry_key_values scekv ON scekv.stockcardentryid = sce.id" +
+          " WHERE stockcardid = #{stockCardId}")
+  List<StockCardEntryKV> getStockCardKeyValues(@Param("stockCardId")Long stockCardId);
 
   @Select("SELECT *" +
       " FROM stock_card_entries" +
