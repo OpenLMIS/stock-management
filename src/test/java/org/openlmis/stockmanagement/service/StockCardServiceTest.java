@@ -80,7 +80,7 @@ public class StockCardServiceTest {
         createdLot.setManufactureDate(lot.getManufactureDate());
         createdLot.setExpirationDate(lot.getExpirationDate());
 
-        expectedLotOnHand = LotOnHand.createZeroedLotOnHand(lot, dummyCard, new LatestRecordedStrategy());
+        expectedLotOnHand = LotOnHand.createZeroedLotOnHand(lot, dummyCard);
 
         service = new StockCardService(facilityService,
                 productRepository,

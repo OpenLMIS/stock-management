@@ -41,7 +41,7 @@ public class LotOnHand extends BaseModel {
   @JsonIgnore
   private StockCardEntryKVReduceStrategy strategy;
 
-  private LotOnHand(Lot lot, StockCard stockCard, StockCardEntryKVReduceStrategy strategy) {
+  private LotOnHand(Lot lot, StockCard stockCard) {
     Objects.requireNonNull(lot);
     Objects.requireNonNull(stockCard);
     this.lot = lot;
@@ -49,7 +49,7 @@ public class LotOnHand extends BaseModel {
     this.quantityOnHand = 0L;
     this.effectiveDate = new Date();
     this.keyValues = new ArrayList<>();
-    this.strategy = strategy;
+    this.strategy = null;
   }
 
   public Map<String, String> getCustomProps() {
@@ -94,7 +94,7 @@ public class LotOnHand extends BaseModel {
    * @param stockCard
    * @return
    */
-  public static final LotOnHand createZeroedLotOnHand(Lot lot, StockCard stockCard, StockCardEntryKVReduceStrategy strategy) {
-    return new LotOnHand(lot, stockCard, strategy);
+  public static final LotOnHand createZeroedLotOnHand(Lot lot, StockCard stockCard) {
+    return new LotOnHand(lot, stockCard);
   }
 }

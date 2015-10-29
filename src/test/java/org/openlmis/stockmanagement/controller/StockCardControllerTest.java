@@ -147,9 +147,9 @@ public class StockCardControllerTest {
   //Associate two lots with the specified StockCard - one lot for which we have stockOnHand, and one for which we don't
   public void associateTestLotsWithStockCard(StockCard card)
   {
-    LotOnHand lotWithZeroQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(0L), dummyCard, new LatestRecordedStrategy());
+    LotOnHand lotWithZeroQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(0L), dummyCard);
 
-    LotOnHand lotWithPositiveQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(1L), dummyCard, new LatestRecordedStrategy());
+    LotOnHand lotWithPositiveQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(1L), dummyCard);
     lotWithPositiveQuantityOnHand.setQuantityOnHand(1L);
 
     List<LotOnHand> lotsOnHand = new LinkedList<>();
