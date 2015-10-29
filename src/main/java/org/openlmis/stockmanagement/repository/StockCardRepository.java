@@ -33,14 +33,14 @@ public class StockCardRepository {
    * an exception will be thrown.
    *
    * @param facilityId the id of the facility
-   * @param productId  the id of the product
+   * @param productCode  the code of the product
    * @return the persisted stock card.
    */
-  public StockCard getOrCreateStockCard(long facilityId, long productId) {
-    StockCard card = mapper.getByFacilityAndProduct(facilityId, productId);
+  public StockCard getOrCreateStockCard(long facilityId, String productCode) {
+    StockCard card = mapper.getByFacilityAndProduct(facilityId, productCode);
     if (null == card) {
       Facility facility = facilityRepository.getById(facilityId);
-      Product product = productRepository.getById(productId);
+      Product product = productRepository.getByCode(productCode);
       Objects.requireNonNull(facility);
       Objects.requireNonNull(product);
       card = StockCard.createZeroedStockCard(facility, product);
@@ -54,11 +54,11 @@ public class StockCardRepository {
   /**
    * Gets a stock card by facility id and product id
    * @param facilityId the id of the facility
-   * @param productId the id of the product
+   * @param productCode the code of the product
    * @return the unique stock card, or null if stock card, facility, or product do not exist.
    */
-  public StockCard getStockCardByFacilityAndProduct(long facilityId, long productId) {
-    return mapper.getByFacilityAndProduct(facilityId, productId);
+  public StockCard getStockCardByFacilityAndProduct(long facilityId, String productCode) {
+    return mapper.getByFacilityAndProduct(facilityId, productCode);
   }
 
   public StockCard getStockCardById(Long facilityId, Long id) {

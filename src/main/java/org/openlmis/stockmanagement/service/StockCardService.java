@@ -71,7 +71,7 @@ public class StockCardService {
   }
 
 
-  public LotOnHand getLotOnHand(Long lotId, Lot lotObj, Long productId, StockCard card, StringBuilder str) {
+  public LotOnHand getLotOnHand(Long lotId, Lot lotObj, String productCode, StockCard card, StringBuilder str) {
     LotOnHand lotOnHand = null;
     if (null != lotId) { // Lot specified by id
       lotOnHand = lotRepository.getLotOnHandByStockCardAndLot(card.getId(), lotId);
@@ -80,7 +80,7 @@ public class StockCardService {
       }
     } else if (null != lotObj) { // Lot specified by object
       if (null == lotObj.getProduct()) {
-        lotObj.setProduct(productRepository.getById(productId));
+        lotObj.setProduct(productRepository.getByCode(productCode));
       }
       if (!lotObj.isValid()) {
         str.append("error.lot.invalid");
@@ -93,8 +93,8 @@ public class StockCardService {
     return lotOnHand;
   }
 
-  public StockCard getOrCreateStockCard(Long facilityId, Long productId) {
-    return repository.getOrCreateStockCard(facilityId, productId);
+  public StockCard getOrCreateStockCard(Long facilityId, String productCode) {
+    return repository.getOrCreateStockCard(facilityId, productCode);
   }
 
   public StockCard getStockCardById(Long facilityId, Long stockCardId) {

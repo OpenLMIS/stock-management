@@ -56,11 +56,13 @@ public class StockCardMapperIT {
   private StockCardMapper mapper;
 
   private StockCard defaultCard;
+  private Facility defaultFacility;
+  private Product defaultProduct;
 
   @Before
   public void setup() {
-    Facility defaultFacility = make(a(FacilityBuilder.defaultFacility));
-    Product defaultProduct = make(a(ProductBuilder.defaultProduct));
+    defaultFacility = make(a(FacilityBuilder.defaultFacility));
+    defaultProduct = make(a(ProductBuilder.defaultProduct));
     facilityMapper.insert(defaultFacility);
     productMapper.insert(defaultProduct);
 
@@ -94,5 +96,15 @@ public class StockCardMapperIT {
         assertEquals(kv.getValueColumn(), "1");
       }
     }
+  }
+
+  @Test
+  public void shouldGetStockCardByFacilityIdAndProductCode() {
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L);
+    mapper.insertEntry(entry);
+
+    StockCard stockCard = mapper.getByFacilityAndProduct(defaultFacility.getId(), defaultProduct.getCode());
+    assertThat(stockCard.getProduct().getCode(), is(defaultProduct.getCode()));
+    assertThat(stockCard.getFacility().getId(), is(defaultFacility.getId()));
   }
 }

@@ -26,6 +26,7 @@ import org.openlmis.core.repository.FacilityRepository;
 import org.openlmis.core.repository.StockAdjustmentReasonRepository;
 import org.openlmis.core.service.MessageService;
 import org.openlmis.core.service.ProductService;
+import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.db.categories.UnitTests;
 import org.openlmis.stockmanagement.domain.*;
 import org.openlmis.stockmanagement.dto.StockEvent;
@@ -41,15 +42,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpSession;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.natpryce.makeiteasy.MakeItEasy.*;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 
 
 @Category(UnitTests.class)
@@ -76,7 +78,7 @@ public class StockCardControllerTest {
   private LotRepository lotRepository;
 
   @Mock
-  private StockCardService service;
+  private StockCardService stockCardService;
 
   private StockCardController controller;
 
@@ -88,17 +90,14 @@ public class StockCardControllerTest {
   private static final MockHttpSession session = new MockHttpSession();
 
   private long fId;
-  private long pId;
+  private String pCode;
   private String reasonName;
   private StockAdjustmentReason reason;
   private StockEvent event;
-  private long lotId;
-  private Lot lot;
-  private LotOnHand lotOnHand;
 
   static  {
     defaultFacility = make(a(FacilityBuilder.defaultFacility, with(FacilityBuilder.facilityId, 1L)));
-    defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.productId, 1L)));
+    defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.code, "valid_code")));
     dummyCard = StockCard.createZeroedStockCard(defaultFacility, defaultProduct);
   }
 
@@ -112,12 +111,12 @@ public class StockCardControllerTest {
         stockAdjustmentReasonRepository,
         stockCardRepository,
         lotRepository,
-        service);
+            stockCardService);
   }
 
   public void setupEvent() {
     fId = defaultFacility.getId();
-    pId = defaultProduct.getId();
+    pCode = defaultProduct.getCode();
     reasonName = "dummyReason";
 
     reason = new StockAdjustmentReason();
@@ -125,24 +124,39 @@ public class StockCardControllerTest {
     reason.setName(reasonName);
 
     event = new StockEvent();
+    event.setProductCode(pCode);
     event.setType(StockEventType.ADJUSTMENT);
 //    event.setFacilityId(fId);
-    event.setProductId(pId);
     event.setReasonName(reasonName);
     event.setQuantity(10L);
   }
 
-  public void setupLot() {
-    lot = new Lot();
-    lot.setId(lotId);
+  public Lot setupLot(Long id)
+  {
+    Lot lot = new Lot();
+    lot.setId(id);
     lot.setProduct(defaultProduct);
-    lot.setLotCode("A1");
-    lot.setManufacturerName("Manu");
+    lot.setLotCode("code_" + id);
+    lot.setManufacturerName("Manufacturer_of_" + id);
     lot.setManufactureDate(new Date());
     lot.setExpirationDate(new Date());
-    event.setLot(lot);
+    //event.setLot(lot);
+    return lot;
+  }
 
-    lotOnHand = LotOnHand.createZeroedLotOnHand(lot, dummyCard, new MaxRecordedStrategy());
+  //Associate two lots with the specified StockCard - one lot for which we have stockOnHand, and one for which we don't
+  public void associateTestLotsWithStockCard(StockCard card)
+  {
+    LotOnHand lotWithZeroQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(0L), dummyCard, new MaxRecordedStrategy());
+
+    LotOnHand lotWithPositiveQuantityOnHand = LotOnHand.createZeroedLotOnHand(setupLot(1L), dummyCard, new MaxRecordedStrategy());
+    lotWithPositiveQuantityOnHand.setQuantityOnHand(1L);
+
+    List<LotOnHand> lotsOnHand = new LinkedList<>();
+    lotsOnHand.add(lotWithZeroQuantityOnHand);
+    lotsOnHand.add(lotWithPositiveQuantityOnHand);
+
+    card.setLotsOnHand(lotsOnHand);
   }
 
   @Test
@@ -162,7 +176,7 @@ public class StockCardControllerTest {
 
     ResponseEntity response = controller.processStock(facilityId, events, request);
     assertThat(response.getStatusCode(),
-        is(HttpStatus.BAD_REQUEST));
+            is(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -171,16 +185,80 @@ public class StockCardControllerTest {
 
     // test
     when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
-    when(productService.getById(pId)).thenReturn(defaultProduct);
+    when(productService.getByCode(pCode)).thenReturn(defaultProduct);
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
-    when(service.getOrCreateStockCard(fId, pId)).thenReturn(dummyCard);
-    when(lotRepository.getLotOnHandByStockCardAndLot(dummyCard.getId(), lotId)).thenReturn(null);
+    when(stockCardService.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
+    when(lotRepository.getLotOnHandByStockCardAndLot(eq(dummyCard.getId()), any(Long.class))).thenReturn(null);
     ResponseEntity response = controller.processStock(fId, Collections.singletonList(event), request);
 
     // verify
     StockCardEntry entry = new StockCardEntry(dummyCard, StockCardEntryType.ADJUSTMENT, event.getQuantity() * -1);
     entry.setAdjustmentReason(reason);
-    verify(service).addStockCardEntries(Collections.singletonList(entry));
+    verify(stockCardService).addStockCardEntries(Collections.singletonList(entry));
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
+  }
+
+  @Test
+  public void shouldOnlyReturnEmptyLotsWhenRequested()
+  {
+    //Arbitrary values
+    Long facilityId = 1L;
+    String productCode = "2";
+    Long stockCardId = 3L;
+    Integer numEntries = 100;
+    Boolean countOnly = false;
+
+    when(stockCardRepository.getStockCardByFacilityAndProduct(any(Long.class), any(String.class))).thenReturn(dummyCard);
+    when(stockCardService.getStockCardById(any(Long.class), any(Long.class))).thenReturn(dummyCard);
+    when(stockCardService.getStockCards(any(Long.class))).thenReturn(new LinkedList<StockCard>(Arrays.asList(dummyCard)));
+
+
+    /* Indicate that empty Lots shouldn’t be included in stockCard.getLotsOnHand().
+       Then, below, verify that various method calls return just a single LotOnHand
+       (having stripped out the second, empty lot, that otherwise would have been included). */
+    boolean includeEmptyLots = false;
+
+
+    associateTestLotsWithStockCard(dummyCard);
+    ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    StockCard stockCard = (StockCard)response.getBody();
+    assertEquals( 1, stockCard.getLotsOnHand().size());
+
+    associateTestLotsWithStockCard(dummyCard);
+    response = controller.getStockCardById(facilityId, stockCardId, numEntries, includeEmptyLots);
+    stockCard = (StockCard)response.getBody();
+    assertEquals( 1, stockCard.getLotsOnHand().size());
+
+
+    associateTestLotsWithStockCard(dummyCard);
+    response = controller.getStockCards(facilityId, numEntries, countOnly, includeEmptyLots);
+    OpenLmisResponse openLmisResponse = (OpenLmisResponse)response.getBody();
+    List<StockCard> stockCards = (List<StockCard>)openLmisResponse.getData().get("stockCards");
+    stockCard = stockCards.get(0);
+    assertEquals( 1, stockCard.getLotsOnHand().size());
+
+
+    /* Indicate that empty Lots should be included in stockCard.getLotsOnHand().
+       Then, below, verify that various method calls return both lots (including the empty one)
+        associated with our stockCard. */
+    includeEmptyLots = true;
+
+
+    associateTestLotsWithStockCard(dummyCard);
+    response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    stockCard = (StockCard)response.getBody();
+    assertEquals( 2, stockCard.getLotsOnHand().size());
+
+    associateTestLotsWithStockCard(dummyCard);
+    response = controller.getStockCardById(facilityId, stockCardId, numEntries, includeEmptyLots);
+    stockCard = (StockCard)response.getBody();
+    assertEquals( 2, stockCard.getLotsOnHand().size());
+
+    associateTestLotsWithStockCard(dummyCard);
+    response = controller.getStockCards(facilityId, numEntries, countOnly, includeEmptyLots);
+    openLmisResponse = (OpenLmisResponse)response.getBody();
+    stockCards = (List<StockCard>)openLmisResponse.getData().get("stockCards");
+    stockCard = stockCards.get(0);
+    assertEquals( 2, stockCard.getLotsOnHand().size());
   }
 }
