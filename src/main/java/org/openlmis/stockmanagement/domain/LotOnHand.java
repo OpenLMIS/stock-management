@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.openlmis.core.domain.BaseModel;
 import org.openlmis.core.serializer.DateDeserializer;
-import org.openlmis.stockmanagement.util.LatestRecordedStrategy;
+import org.openlmis.stockmanagement.util.LatestSyncedStrategy;
 import org.openlmis.stockmanagement.util.StockCardEntryKVReduceStrategy;
 import org.openlmis.stockmanagement.util.StockManagementUtils;
 
@@ -50,7 +50,7 @@ public class LotOnHand extends BaseModel {
   }
 
   public Map<String, String> getCustomProps() {
-    if (null == strategy) strategy = new LatestRecordedStrategy();
+    if (null == strategy) strategy = new LatestSyncedStrategy();
 
     Map<String, String> customProps = StockManagementUtils.getKeyValueAggregate(keyValues, strategy);
 

@@ -4,7 +4,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.openlmis.db.categories.UnitTests;
-import org.openlmis.stockmanagement.util.LatestRecordedStrategy;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.util.ArrayList;

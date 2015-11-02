@@ -67,7 +67,7 @@ public interface StockCardMapper {
 
   @Select("SELECT scekv.keycolumn" +
           ", scekv.valuecolumn" +
-          ", scekv.modifieddate AS recordeddate" +
+          ", scekv.modifieddate AS synceddate" +
           " FROM stock_card_entries sce" +
           "   JOIN stock_card_entry_key_values scekv ON scekv.stockcardentryid = sce.id" +
           " WHERE stockcardid = #{stockCardId}")
@@ -85,7 +85,7 @@ public interface StockCardMapper {
 
   @Select("SELECT keycolumn" +
           ", valuecolumn" +
-          ", modifieddate AS recordeddate" +
+          ", modifieddate AS synceddate" +
           " FROM stock_card_entry_key_values" +
           " WHERE stockcardentryid = #{stockCardEntryId}")
   List<StockCardEntryKV> getEntryKeyValues(@Param("stockCardEntryId")Long stockCardEntryId);
@@ -105,7 +105,7 @@ public interface StockCardMapper {
 
   @Select("SELECT scekv.keycolumn" +
           ", scekv.valuecolumn" +
-          ", scekv.modifieddate AS recordeddate" +
+          ", scekv.modifieddate AS synceddate" +
           " FROM stock_card_entries sce" +
           "   JOIN stock_card_entry_key_values scekv ON scekv.stockcardentryid = sce.id" +
           " WHERE lotonhandid = #{lotOnHandId}")
