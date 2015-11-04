@@ -18,7 +18,6 @@ import org.openlmis.core.domain.*;
 import org.openlmis.core.repository.FacilityRepository;
 import org.openlmis.core.repository.StockAdjustmentReasonRepository;
 import org.openlmis.core.service.*;
-import org.openlmis.core.utils.RightUtil;
 import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.core.web.controller.BaseController;
 import org.openlmis.stockmanagement.domain.*;
@@ -105,8 +104,6 @@ public class StockCardController extends BaseController
         this.roleRightsService = Objects.requireNonNull(roleRightsService);
         this.service = Objects.requireNonNull(service);
     }
-
-    //TODO: Determine what the permissions associated with @PreAuthorize should be. (MANAGE_PROGRAM_PRODUCT, below, is just a placeholder).
 
     @RequestMapping(value = "facilities/{facilityId}/products/{productCode}/stockCard", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about the stock card for the specified facility and product.",
@@ -359,7 +356,6 @@ public class StockCardController extends BaseController
             }
 
             // get or create stock card
-            //TODO:  this call might create a stock card if it doesn't exist, need to implement permission check
             StockCard card = service.getOrCreateStockCard(facilityId, productCode);
             if(null == card)
                 return OpenLmisResponse.error("Unable to get/create stock card for facility and product",
