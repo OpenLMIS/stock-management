@@ -310,6 +310,7 @@ public class StockCardControllerTest {
     Integer numEntries = 100;
 
     when(stockCardRepository.getStockCardByFacilityAndProduct(any(Long.class), any(String.class))).thenReturn(dummyCard);
+    setupPermissionCalls(Collections.singletonList(new Right("VIEW_STOCK_ON_HAND", RightType.REQUISITION)));
 
     boolean includeEmptyLots = false;
     ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots, request);
