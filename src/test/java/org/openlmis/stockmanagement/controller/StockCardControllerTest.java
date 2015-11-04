@@ -288,7 +288,7 @@ public class StockCardControllerTest {
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
     when(stockCardService.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
     when(lotRepository.getLotOnHandByStockCardAndLot(eq(dummyCard.getId()), any(Long.class))).thenReturn(null);
-    setupPermissionCalls(Collections.singletonList(new Right("ADJUST_STOCK", RightType.REQUISITION)));
+    setupPermissionCalls(Collections.singletonList(new Right("MANAGE_STOCK", RightType.REQUISITION)));
 
     ResponseEntity response = controller.processStock(fId, Collections.singletonList(event), request);
 

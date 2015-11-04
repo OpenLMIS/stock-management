@@ -351,7 +351,7 @@ public class StockCardController extends BaseController
 
             // validate permissions
             List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, productCode);
-            if (!any(rights, with("ADJUST_STOCK"))) {
+            if (!any(rights, with("MANAGE_STOCK"))) {
                 return OpenLmisResponse.error(messageService.message("error.permission.stock.card.manage"), HttpStatus.FORBIDDEN);
             }
 
