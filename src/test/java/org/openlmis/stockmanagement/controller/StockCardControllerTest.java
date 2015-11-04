@@ -312,12 +312,12 @@ public class StockCardControllerTest {
     when(stockCardRepository.getStockCardByFacilityAndProduct(any(Long.class), any(String.class))).thenReturn(dummyCard);
 
     boolean includeEmptyLots = false;
-    ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots, request);
     StockCard stockCard = (StockCard)response.getBody();
     assertNull(stockCard.getLotsOnHand());
 
     includeEmptyLots = true;
-    response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots, request);
     stockCard = (StockCard)response.getBody();
     assertNull(stockCard.getLotsOnHand());
   }
