@@ -111,6 +111,12 @@ public interface StockCardMapper {
           " WHERE lotonhandid = #{lotOnHandId}")
   List<StockCardEntryKV> getLotOnHandKeyValues(@Param("lotOnHandId")Long lotOnHandId);
 
+  @Select("SELECT p.*" +
+          " FROM products p" +
+          "   JOIN stock_cards sc ON sc.productid = p.id" +
+          " WHERE sc.id = #{stockCardId}")
+  Product getProductByStockCardId(Long stockCardId);
+
   @Insert("INSERT INTO stock_cards (facilityId" +
       ", productId" +
       ", totalQuantityOnHand" +
