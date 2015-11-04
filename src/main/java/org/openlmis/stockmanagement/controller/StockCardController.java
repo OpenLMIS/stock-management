@@ -14,11 +14,11 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import lombok.NoArgsConstructor;
 import org.apache.log4j.Logger;
-import org.openlmis.core.domain.StockAdjustmentReason;
+import org.openlmis.core.domain.*;
 import org.openlmis.core.repository.FacilityRepository;
 import org.openlmis.core.repository.StockAdjustmentReasonRepository;
-import org.openlmis.core.service.MessageService;
-import org.openlmis.core.service.ProductService;
+import org.openlmis.core.service.*;
+import org.openlmis.core.utils.RightUtil;
 import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.core.web.controller.BaseController;
 import org.openlmis.stockmanagement.domain.*;
@@ -40,6 +40,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
+import static com.google.common.collect.Iterables.any;
+import static org.openlmis.core.utils.RightUtil.with;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -71,6 +73,15 @@ public class StockCardController extends BaseController
     private LotRepository lotRepository;
 
     @Autowired
+    private ProgramProductService programProductService;
+
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private RoleRightsService roleRightsService;
+
+    @Autowired
     private StockCardService service;
 
     StockCardController(MessageService messageService,
@@ -79,6 +90,9 @@ public class StockCardController extends BaseController
                         StockAdjustmentReasonRepository stockAdjustmentReasonRepository,
                         StockCardRepository stockCardRepository,
                         LotRepository lotRepository,
+                        ProgramProductService programProductService,
+                        ProgramService programService,
+                        RoleRightsService roleRightsService,
                         StockCardService service) {
         this.messageService = Objects.requireNonNull(messageService);
         this.facilityRepository = Objects.requireNonNull(facilityRepository);
@@ -86,6 +100,9 @@ public class StockCardController extends BaseController
         this.stockCardRepository = Objects.requireNonNull(stockCardRepository);
         this.stockAdjustmentReasonRepository = Objects.requireNonNull(stockAdjustmentReasonRepository);
         this.lotRepository = Objects.requireNonNull(lotRepository);
+        this.programProductService = Objects.requireNonNull(programProductService);
+        this.programService = Objects.requireNonNull(programService);
+        this.roleRightsService = Objects.requireNonNull(roleRightsService);
         this.service = Objects.requireNonNull(service);
     }
 
@@ -94,6 +111,8 @@ public class StockCardController extends BaseController
     @RequestMapping(value = "facilities/{facilityId}/products/{productCode}/stockCard", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about the stock card for the specified facility and product.",
             notes = "Gets stock card information, by facility and product." +
+                    "<p>If no view permissions are found for this stock card, will return 403 Forbidden." +
+                    "<p>" +
                     "<p>Path parameters (required):" +
                     "<ul>" +
                     "<li><strong>facilityId</strong> (Long) - facility for the stock card.</li>" +
@@ -108,10 +127,17 @@ public class StockCardController extends BaseController
     public ResponseEntity getStockCard(@PathVariable Long facilityId,
                                        @PathVariable String productCode,
                                        @RequestParam(value = "entries", defaultValue = "1")Integer entries,
-                                       @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots)
+                                       @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots,
+                                       HttpServletRequest request)
     {
-        StockCard stockCard = stockCardRepository.getStockCardByFacilityAndProduct(facilityId, productCode);
+        // Check permissions
+        Long userId = loggedInUserId(request);
+        List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, productCode);
+        if (!any(rights, with("VIEW_STOCK_ON_HAND"))) {
+            return OpenLmisResponse.error(messageService.message("error.permission.stock.card.view"), HttpStatus.FORBIDDEN);
+        }
 
+        StockCard stockCard = stockCardRepository.getStockCardByFacilityAndProduct(facilityId, productCode);
         if (stockCard != null)
         {
             filterEntries(stockCard, entries, includeEmptyLots);
@@ -125,7 +151,9 @@ public class StockCardController extends BaseController
     @RequestMapping(value = "facilities/{facilityId}/stockCards/{stockCardId}", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about the specified stock card for the specified facility.",
             notes = "Gets stock card information, by facility and stock card id." +
-                    "<p>If facility does not have specified stock card id, returns 404 NOT FOUND." +
+                    "<p>If facility does not have specified stock card id, will return 404 Not Found." +
+                    "<p>If no view permissions are found for this stock card, will return 403 Forbidden." +
+                    "<p>" +
                     "<p>Path parameters (required):" +
                     "<ul>" +
                     "<li><strong>facilityId</strong> (Long) - facility for the stock card.</li>" +
@@ -139,10 +167,18 @@ public class StockCardController extends BaseController
                     "</ul>")
     public ResponseEntity getStockCardById(@PathVariable Long facilityId, @PathVariable Long stockCardId,
                                            @RequestParam(value = "entries", defaultValue = "1")Integer entries,
-                                           @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots)
+                                           @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots,
+                                           HttpServletRequest request)
     {
-        StockCard stockCard = service.getStockCardById(facilityId, stockCardId);
+        Long userId = loggedInUserId(request);
+        Product product = service.getProductByStockCardId(stockCardId);
+        List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, product.getCode());
 
+        if (!any(rights, with("VIEW_STOCK_ON_HAND"))) {
+            return OpenLmisResponse.error(messageService.message("error.permission.stock.card.view"), HttpStatus.FORBIDDEN);
+        }
+
+        StockCard stockCard = service.getStockCardById(facilityId, stockCardId);
         if (stockCard != null) {
             filterEntries(stockCard, entries, includeEmptyLots);
             return OpenLmisResponse.response(stockCard);
@@ -155,6 +191,9 @@ public class StockCardController extends BaseController
     @RequestMapping(value = "facilities/{facilityId}/stockCards", method = GET, headers = ACCEPT_JSON)
     @ApiOperation(value = "Get information about all stock cards for the specified facility.",
             notes = "Gets all stock card information, by facility." +
+                    "<p>If no stock cards exist, will return 404 Not Found." +
+                    "<p>If no view permissions are found for any existing stock card, will return an empty list." +
+                    "<p>" +
                     "<p>Path parameters (required):" +
                     "<ul>" +
                     "<li><strong>facilityId</strong> (Long) - facility for the stock cards.</li>" +
@@ -170,19 +209,33 @@ public class StockCardController extends BaseController
     public ResponseEntity getStockCards(@PathVariable Long facilityId,
                                         @RequestParam(value = "entries", defaultValue = "1") Integer entries,
                                         @RequestParam(value = "countOnly", defaultValue = "false") Boolean countOnly,
-                                        @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots)
+                                        @RequestParam(value = "includeEmptyLots", required = false, defaultValue = "false") boolean includeEmptyLots,
+                                        HttpServletRequest request)
     {
+        Long userId = loggedInUserId(request);
         List<StockCard> stockCards = service.getStockCards(facilityId);
 
-        if (countOnly) {
-            return OpenLmisResponse.response("count", stockCards.size());
-        }
-
         if (stockCards != null) {
+            // Filter stock cards based on permission, put into permitted stock cards
+            List<StockCard> permittedStockCards = new ArrayList<>();
             for (StockCard stockCard : stockCards) {
+                List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, stockCard.getProduct().getCode());
+                if (any(rights, with("VIEW_STOCK_ON_HAND"))) {
+                    permittedStockCards.add(stockCard);
+                }
+            }
+
+            // If countOnly specified, then only return count of permitted stock cards
+            if (countOnly) {
+                return OpenLmisResponse.response("count", permittedStockCards.size());
+            }
+
+            // Filter the permitted stock cards based on other criteria
+            for (StockCard stockCard : permittedStockCards) {
                 filterEntries(stockCard, entries, includeEmptyLots);
             }
-            return OpenLmisResponse.response("stockCards", stockCards);
+
+            return OpenLmisResponse.response("stockCards", permittedStockCards);
         }
         else {
             return OpenLmisResponse.error("The specified stock cards do not exist." , HttpStatus.NOT_FOUND);
@@ -299,6 +352,12 @@ public class StockCardController extends BaseController
                             HttpStatus.BAD_REQUEST);
             }
 
+            // validate permissions
+            List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, productCode);
+            if (!any(rights, with("ADJUST_STOCK"))) {
+                return OpenLmisResponse.error(messageService.message("error.permission.stock.card.manage"), HttpStatus.FORBIDDEN);
+            }
+
             // get or create stock card
             //TODO:  this call might create a stock card if it doesn't exist, need to implement permission check
             StockCard card = service.getOrCreateStockCard(facilityId, productCode);
@@ -398,5 +457,24 @@ public class StockCardController extends BaseController
         stockCard.setLotsOnHand(nonEmptyLots);
     }
 
+    private List<Right> getRightsForUserFacilityAndProductCode(Long userId, Long facilityId, String productCode)
+    {
+        Facility facility = facilityRepository.getById(facilityId);
 
+        // Get programs by product code, through programProducts
+        List<ProgramProduct> programProducts = programProductService.getByProductCode(productCode);
+        List<Program> programs = new ArrayList<>();
+        for (ProgramProduct programProduct : programProducts) {
+            Program program = programService.getByCode(programProduct.getProgram().getCode());
+            programs.add(program);
+        }
+
+        // For each program, get rights
+        List<Right> rights = new ArrayList<>();
+        for (Program program : programs) {
+            rights.addAll(roleRightsService.getRightsForUserAndFacilityProgram(userId, facility, program));
+        }
+
+        return rights;
+    }
 }
