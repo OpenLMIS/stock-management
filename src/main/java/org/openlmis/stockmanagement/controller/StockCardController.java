@@ -318,7 +318,7 @@ public class StockCardController extends BaseController
                                        HttpServletRequest request) {
 
         // verify we have something to do and facility exists
-        if(null == events || 0 >= events.size()) return OpenLmisResponse.success("Nothing to do");
+        if(null == events || 0 >= events.size()) return OpenLmisResponse.success(messageService.message("success.stock.event.none"));
         if(null == facilityRepository.getById(facilityId))
             return OpenLmisResponse.error(messageService.message("error.facility.unknown"), HttpStatus.BAD_REQUEST);
 
@@ -332,7 +332,7 @@ public class StockCardController extends BaseController
             if(!event.isValidAdjustment() &&
                     !event.isValidIssue() &&
                     !event.isValidReceipt())
-                return OpenLmisResponse.error("Invalid stock event", HttpStatus.BAD_REQUEST);
+                return OpenLmisResponse.error(messageService.message("error.stock.event.invalid"), HttpStatus.BAD_REQUEST);
 
             // validate product
             String productCode = event.getProductCode();
@@ -358,8 +358,7 @@ public class StockCardController extends BaseController
             // get or create stock card
             StockCard card = service.getOrCreateStockCard(facilityId, productCode);
             if(null == card)
-                return OpenLmisResponse.error("Unable to get/create stock card for facility and product",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+                return OpenLmisResponse.error(messageService.message("error.stock.card.get"), HttpStatus.INTERNAL_SERVER_ERROR);
 
             // get or create lot, if lot is being used
             StringBuilder str = new StringBuilder();
@@ -399,7 +398,7 @@ public class StockCardController extends BaseController
         }
 
         service.addStockCardEntries(entries);
-        return OpenLmisResponse.success("Stock adjusted");
+        return OpenLmisResponse.success(messageService.message("success.stock.adjusted"));
     }
 
 
