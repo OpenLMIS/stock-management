@@ -381,9 +381,14 @@ public class StockCardController extends BaseController
     //Filter stockCard such that only contains Lots that have a positive quantityOnHand
     private void removeEmptyLotsFromStockCard(StockCard stockCard)
     {
+        //Data validation
+        List<LotOnHand> originalLotsOnHand = stockCard.getLotsOnHand();
+        if(originalLotsOnHand == null)
+            return;
+
         //Build a list of nonEmptyLots...
         List<LotOnHand> nonEmptyLots = new LinkedList<LotOnHand>();
-        for (LotOnHand lot : stockCard.getLotsOnHand())
+        for (LotOnHand lot : originalLotsOnHand)
         {
             if(lot.getQuantityOnHand() > 0)
                 nonEmptyLots.add(lot);

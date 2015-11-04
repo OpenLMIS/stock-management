@@ -47,6 +47,7 @@ import java.util.*;
 import static com.natpryce.makeiteasy.MakeItEasy.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -197,6 +198,30 @@ public class StockCardControllerTest {
     verify(stockCardService).addStockCardEntries(Collections.singletonList(entry));
     assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
+
+
+
+  @Test
+  public void shouldReturnNullWhenLotsOnHandIsNull()
+  {
+    //Arbitrary values
+    Long facilityId = 1L;
+    String productCode = "2";
+    Integer numEntries = 100;
+
+    when(stockCardRepository.getStockCardByFacilityAndProduct(any(Long.class), any(String.class))).thenReturn(dummyCard);
+
+    boolean includeEmptyLots = false;
+    ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    StockCard stockCard = (StockCard)response.getBody();
+    assertNull(stockCard.getLotsOnHand());
+
+    includeEmptyLots = true;
+    response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    stockCard = (StockCard)response.getBody();
+    assertNull(stockCard.getLotsOnHand());
+  }
+
 
   @Test
   public void shouldOnlyReturnEmptyLotsWhenRequested()
