@@ -14,5 +14,5 @@ import java.util.Date;
 public class StockCardEntryKV {
     private String keyColumn;
     private String valueColumn;
-    private Date recordedDate;
+    private Date syncedDate;
 }
