@@ -10,6 +10,7 @@
 
 package org.openlmis.stockmanagement.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
@@ -19,9 +20,11 @@ import org.joda.time.LocalDateTime;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openlmis.core.domain.StockAdjustmentReason;
+import org.openlmis.core.serializer.DateDeserializer;
 import org.openlmis.core.serializer.DateTimeDeserializer;
 import org.openlmis.stockmanagement.domain.Lot;
 
+import java.util.Date;
 import java.util.Map;
 
 @Data
@@ -33,8 +36,8 @@ public class StockEvent {
   private Long facilityId;
   private String productCode;
 
-  @JsonDeserialize(using= DateTimeDeserializer.class)
-  private DateTime occurred;
+  @JsonDeserialize(using= DateDeserializer.class)
+  private Date occurred;
   private Long quantity;
   private Long lotId;
   private Lot lot;
@@ -45,7 +48,7 @@ public class StockEvent {
   public StockEvent() {
     facilityId = null;
     productCode = null;
-    occurred = LocalDateTime.now().toDateTime();
+    occurred = null;
     quantity = null;
     lotId = null;
     reasonName = null;
