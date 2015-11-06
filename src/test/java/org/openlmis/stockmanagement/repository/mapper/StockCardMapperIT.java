@@ -20,6 +20,7 @@ import org.openlmis.core.domain.Facility;
 import org.openlmis.core.domain.Product;
 import org.openlmis.core.repository.mapper.FacilityMapper;
 import org.openlmis.core.repository.mapper.ProductMapper;
+import org.openlmis.core.utils.DateUtil;
 import org.openlmis.db.categories.IntegrationTests;
 import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
@@ -111,7 +112,7 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldSaveStockEntryOccurred() {
-    Date occurred = new Date();
+    Date occurred = DateUtil.parseDate("2015-10-30 00:00:00");
     StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, occurred);
     mapper.insertEntry(entry);
 
