@@ -168,7 +168,7 @@ public class StockCardController extends BaseController
                                            HttpServletRequest request)
     {
         Long userId = loggedInUserId(request);
-        Product product = service.getProductByStockCardId(stockCardId);
+        Product product = stockCardRepository.getProductByStockCardId(stockCardId);
         List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, product.getCode());
 
         if (!any(rights, with("VIEW_STOCK_ON_HAND"))) {

@@ -181,7 +181,7 @@ public class StockCardControllerTest {
   }
 
   public void setupPermissionCalls(List<Right> rights) {
-    when(stockCardService.getProductByStockCardId(any(Long.class))).thenReturn(defaultProduct);
+    when(stockCardRepository.getProductByStockCardId(any(Long.class))).thenReturn(defaultProduct);
     when(facilityRepository.getById(any(Long.class))).thenReturn(defaultFacility);
     when(programProductService.getByProductCode(any(String.class))).thenReturn(Collections.singletonList(defaultProgramProduct));
     when(programService.getByCode(any(String.class))).thenReturn(defaultProgram);

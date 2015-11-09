@@ -105,10 +105,6 @@ public class StockCardService {
     return repository.getStockCards(facilityId);
   }
 
-  public Product getProductByStockCardId(Long stockCardId) {
-    return repository.getProductByStockCardId(stockCardId);
-  }
-
   @Transactional
   public void addStockCardEntry(StockCardEntry entry) {
     StockCard card = entry.getStockCard();
