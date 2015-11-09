@@ -20,7 +20,7 @@ public class LotOnHandTest {
 
     @Test
     public void shouldGetNullCustomPropsFromEmptyKeyValues() {
-        StockCardEntry entry = new StockCardEntry(new StockCard(), StockCardEntryType.ADJUSTMENT, 1L);
+        StockCardEntry entry = new StockCardEntry(new StockCard(), StockCardEntryType.ADJUSTMENT, 1L, null);
 
         Map<String, String> customProps = entry.getCustomProps();
 

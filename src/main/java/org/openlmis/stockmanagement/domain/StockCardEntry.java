@@ -32,14 +32,17 @@ public class StockCardEntry extends BaseModel {
 
   String notes;
 
+  private Date occurred;
+
   @JsonIgnore
   private List<StockCardEntryKV> keyValues;
 
-  public StockCardEntry(StockCard card, StockCardEntryType type, long quantity) {
+  public StockCardEntry(StockCard card, StockCardEntryType type, long quantity, Date occurred) {
     this.stockCard = Objects.requireNonNull(card);
     this.type = Objects.requireNonNull(type);
     this.quantity = Objects.requireNonNull(quantity);
     this.keyValues = new ArrayList<>();
+    this.occurred = occurred;
   }
 
   @JsonIgnore
@@ -70,4 +73,5 @@ public class StockCardEntry extends BaseModel {
     String newKey = key.trim().toLowerCase();
     keyValues.add(new StockCardEntryKV(newKey, value, new Date()));
   }
+
 }

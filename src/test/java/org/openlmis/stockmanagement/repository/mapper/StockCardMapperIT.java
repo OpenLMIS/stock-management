@@ -20,6 +20,7 @@ import org.openlmis.core.domain.Facility;
 import org.openlmis.core.domain.Product;
 import org.openlmis.core.repository.mapper.FacilityMapper;
 import org.openlmis.core.repository.mapper.ProductMapper;
+import org.openlmis.core.utils.DateUtil;
 import org.openlmis.db.categories.IntegrationTests;
 import org.openlmis.stockmanagement.domain.StockCard;
 import org.openlmis.stockmanagement.domain.StockCardEntry;
@@ -31,6 +32,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 import static com.natpryce.makeiteasy.MakeItEasy.a;
@@ -76,7 +78,7 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldInsertEntry() {
-    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null);
     mapper.insertEntry(entry);
 
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
@@ -85,7 +87,7 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldInsertEntryKeyValues() {
-    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null);
     mapper.insertEntry(entry);
     mapper.insertEntryKeyValue(entry, "vvmstatus", "1");
 
@@ -100,11 +102,22 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldGetStockCardByFacilityIdAndProductCode() {
-    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null);
     mapper.insertEntry(entry);
 
     StockCard stockCard = mapper.getByFacilityAndProduct(defaultFacility.getId(), defaultProduct.getCode());
     assertThat(stockCard.getProduct().getCode(), is(defaultProduct.getCode()));
     assertThat(stockCard.getFacility().getId(), is(defaultFacility.getId()));
+  }
+
+  @Test
+  public void shouldSaveStockEntryOccurred() {
+    Date occurred = DateUtil.parseDate("2015-10-30 00:00:00");
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, occurred);
+    mapper.insertEntry(entry);
+
+    List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
+
+    assertThat(entries.get(0).getOccurred(), is(occurred));
   }
 }
