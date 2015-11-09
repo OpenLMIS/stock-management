@@ -11,7 +11,6 @@
 package org.openlmis.stockmanagement.service;
 
 import lombok.NoArgsConstructor;
-import org.openlmis.core.domain.Product;
 import org.openlmis.core.repository.ProductRepository;
 import org.openlmis.core.service.*;
 import org.openlmis.stockmanagement.domain.Lot;

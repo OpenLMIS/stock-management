@@ -129,7 +129,7 @@ public class StockCardController extends BaseController
     {
         // Check permissions
         Long userId = loggedInUserId(request);
-        List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, productCode);
+        List<Right> rights = roleRightsService.getRightsForUserFacilityAndProductCode(userId, facilityId, productCode);
         if (!any(rights, with("VIEW_STOCK_ON_HAND"))) {
             return OpenLmisResponse.error(messageService.message("error.permission.stock.card.view"), HttpStatus.FORBIDDEN);
         }
@@ -169,7 +169,7 @@ public class StockCardController extends BaseController
     {
         Long userId = loggedInUserId(request);
         Product product = stockCardRepository.getProductByStockCardId(stockCardId);
-        List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, product.getCode());
+        List<Right> rights = roleRightsService.getRightsForUserFacilityAndProductCode(userId, facilityId, product.getCode());
 
         if (!any(rights, with("VIEW_STOCK_ON_HAND"))) {
             return OpenLmisResponse.error(messageService.message("error.permission.stock.card.view"), HttpStatus.FORBIDDEN);
@@ -216,7 +216,7 @@ public class StockCardController extends BaseController
             // Filter stock cards based on permission, put into permitted stock cards
             List<StockCard> permittedStockCards = new ArrayList<>();
             for (StockCard stockCard : stockCards) {
-                List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, stockCard.getProduct().getCode());
+                List<Right> rights = roleRightsService.getRightsForUserFacilityAndProductCode(userId, facilityId, stockCard.getProduct().getCode());
                 if (any(rights, with("VIEW_STOCK_ON_HAND"))) {
                     permittedStockCards.add(stockCard);
                 }
@@ -350,7 +350,7 @@ public class StockCardController extends BaseController
             }
 
             // validate permissions
-            List<Right> rights = getRightsForUserFacilityAndProductCode(userId, facilityId, productCode);
+            List<Right> rights = roleRightsService.getRightsForUserFacilityAndProductCode(userId, facilityId, productCode);
             if (!any(rights, with("MANAGE_STOCK"))) {
                 return OpenLmisResponse.error(messageService.message("error.permission.stock.card.manage"), HttpStatus.FORBIDDEN);
             }
@@ -450,26 +450,5 @@ public class StockCardController extends BaseController
 
         //...and associate it with our StockCard
         stockCard.setLotsOnHand(nonEmptyLots);
-    }
-
-    private List<Right> getRightsForUserFacilityAndProductCode(Long userId, Long facilityId, String productCode)
-    {
-        Facility facility = facilityRepository.getById(facilityId);
-
-        // Get programs by product code, through programProducts
-        List<ProgramProduct> programProducts = programProductService.getByProductCode(productCode);
-        List<Program> programs = new ArrayList<>();
-        for (ProgramProduct programProduct : programProducts) {
-            Program program = programService.getByCode(programProduct.getProgram().getCode());
-            programs.add(program);
-        }
-
-        // For each program, get rights
-        List<Right> rights = new ArrayList<>();
-        for (Program program : programs) {
-            rights.addAll(roleRightsService.getRightsForUserAndFacilityProgram(userId, facility, program));
-        }
-
-        return rights;
     }
 }

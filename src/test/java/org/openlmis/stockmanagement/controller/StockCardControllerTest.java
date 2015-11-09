@@ -183,9 +183,7 @@ public class StockCardControllerTest {
   public void setupPermissionCalls(List<Right> rights) {
     when(stockCardRepository.getProductByStockCardId(any(Long.class))).thenReturn(defaultProduct);
     when(facilityRepository.getById(any(Long.class))).thenReturn(defaultFacility);
-    when(programProductService.getByProductCode(any(String.class))).thenReturn(Collections.singletonList(defaultProgramProduct));
-    when(programService.getByCode(any(String.class))).thenReturn(defaultProgram);
-    when(roleRightsService.getRightsForUserAndFacilityProgram(USER_ID, defaultFacility, defaultProgram)).thenReturn(rights);
+    when(roleRightsService.getRightsForUserFacilityAndProductCode(any(Long.class), any(Long.class), any(String.class))).thenReturn(rights);
   }
 
   @Test
