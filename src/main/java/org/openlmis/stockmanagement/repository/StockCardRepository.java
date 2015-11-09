@@ -83,4 +83,8 @@ public class StockCardRepository {
     Objects.requireNonNull(card);
     mapper.update(card);
   }
+
+  public Product getProductByStockCardId(Long stockCardId) {
+    return mapper.getProductByStockCardId(stockCardId);
+  }
 }

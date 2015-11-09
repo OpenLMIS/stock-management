@@ -19,13 +19,12 @@ import org.mockito.Mock;
 import org.openlmis.authentication.web.UserAuthenticationSuccessHandler;
 import org.openlmis.core.builder.FacilityBuilder;
 import org.openlmis.core.builder.ProductBuilder;
-import org.openlmis.core.domain.Facility;
-import org.openlmis.core.domain.Product;
-import org.openlmis.core.domain.StockAdjustmentReason;
+import org.openlmis.core.builder.ProgramBuilder;
+import org.openlmis.core.builder.ProgramProductBuilder;
+import org.openlmis.core.domain.*;
 import org.openlmis.core.repository.FacilityRepository;
 import org.openlmis.core.repository.StockAdjustmentReasonRepository;
-import org.openlmis.core.service.MessageService;
-import org.openlmis.core.service.ProductService;
+import org.openlmis.core.service.*;
 import org.openlmis.core.web.OpenLmisResponse;
 import org.openlmis.db.categories.UnitTests;
 import org.openlmis.stockmanagement.domain.*;
@@ -78,6 +77,15 @@ public class StockCardControllerTest {
   private LotRepository lotRepository;
 
   @Mock
+  private ProgramProductService programProductService;
+
+  @Mock
+  private ProgramService programService;
+
+  @Mock
+  private RoleRightsService roleRightsService;
+
+  @Mock
   private StockCardService stockCardService;
 
   private StockCardController controller;
@@ -85,6 +93,8 @@ public class StockCardControllerTest {
   private static final long USER_ID = 1L;
   private static final Facility defaultFacility;
   private static final Product defaultProduct;
+  private static final ProgramProduct defaultProgramProduct;
+  private static final Program defaultProgram;
   private static final StockCard dummyCard;
   private static final MockHttpServletRequest request = new MockHttpServletRequest();
   private static final MockHttpSession session = new MockHttpSession();
@@ -98,6 +108,8 @@ public class StockCardControllerTest {
   static  {
     defaultFacility = make(a(FacilityBuilder.defaultFacility, with(FacilityBuilder.facilityId, 1L)));
     defaultProduct = make(a(ProductBuilder.defaultProduct, with(ProductBuilder.code, "valid_code")));
+    defaultProgramProduct = make(a(ProgramProductBuilder.defaultProgramProduct));
+    defaultProgram = make(a(ProgramBuilder.defaultProgram, with(ProgramBuilder.programId, 1L)));
     dummyCard = StockCard.createZeroedStockCard(defaultFacility, defaultProduct);
   }
 
@@ -106,11 +118,14 @@ public class StockCardControllerTest {
     request.setSession(session);
     session.setAttribute(UserAuthenticationSuccessHandler.USER_ID, USER_ID);
     controller =  new StockCardController(messageService,
-        facilityRepository,
-        productService,
-        stockAdjustmentReasonRepository,
-        stockCardRepository,
-        lotRepository,
+            facilityRepository,
+            productService,
+            stockAdjustmentReasonRepository,
+            stockCardRepository,
+            lotRepository,
+            programProductService,
+            programService,
+            roleRightsService,
             stockCardService);
   }
 
@@ -159,28 +174,110 @@ public class StockCardControllerTest {
     card.setLotsOnHand(lotsOnHand);
   }
 
+  public void setupGetStockCardCalls() {
+    when(stockCardRepository.getStockCardByFacilityAndProduct(any(Long.class), any(String.class))).thenReturn(dummyCard);
+    when(stockCardService.getStockCardById(any(Long.class), any(Long.class))).thenReturn(dummyCard);
+    when(stockCardService.getStockCards(any(Long.class))).thenReturn(new LinkedList<>(Collections.singletonList(dummyCard)));
+  }
+
+  public void setupPermissionCalls(List<Right> rights) {
+    when(stockCardRepository.getProductByStockCardId(any(Long.class))).thenReturn(defaultProduct);
+    when(facilityRepository.getById(any(Long.class))).thenReturn(defaultFacility);
+    when(roleRightsService.getRightsForUserFacilityAndProductCode(any(Long.class), any(Long.class), any(String.class))).thenReturn(rights);
+  }
+
   @Test
-  public void shouldSucceedWithEmptyEntriesForAdjustStock() {
+  public void shouldSucceedWithGettingStockCards() {
+    Long facilityId = 1L;
+    String productCode = "2";
+    Long stockCardId = 3L;
+    Integer numEntries = 1;
+    ResponseEntity response;
+    StockCard stockCard;
+
+    setupGetStockCardCalls();
+    setupPermissionCalls(Collections.singletonList(new Right("VIEW_STOCK_ON_HAND", RightType.REQUISITION)));
+
+    response = controller.getStockCard(facilityId, productCode, numEntries, true, request);
+    assertThat(response.getStatusCode(), is(HttpStatus.OK));
+    stockCard = (StockCard)response.getBody();
+    assertEquals(dummyCard, stockCard);
+
+    response = controller.getStockCardById(facilityId, stockCardId, numEntries, true, request);
+    assertThat(response.getStatusCode(), is(HttpStatus.OK));
+    stockCard = (StockCard)response.getBody();
+    assertEquals(dummyCard, stockCard);
+
+    response = controller.getStockCards(facilityId, numEntries, false, true, request);
+    assertThat(response.getStatusCode(), is(HttpStatus.OK));
+    OpenLmisResponse openLmisResponse = (OpenLmisResponse)response.getBody();
+    List<StockCard> stockCards = (List<StockCard>)openLmisResponse.getData().get("stockCards");
+    assertEquals(1, stockCards.size());
+    stockCard = stockCards.get(0);
+    assertEquals(dummyCard, stockCard);
+  }
+
+  @Test
+  public void shouldGetCountOnlyWhenSpecified() {
+    Long facilityId = 1L;
+    Integer numEntries = 100;
+    ResponseEntity response;
+
+    setupGetStockCardCalls();
+    setupPermissionCalls(Collections.singletonList(new Right("VIEW_STOCK_ON_HAND", RightType.REQUISITION)));
+
+    response = controller.getStockCards(facilityId, numEntries, true, true, request);
+    assertThat(response.getStatusCode(), is(HttpStatus.OK));
+    OpenLmisResponse openLmisResponse = (OpenLmisResponse)response.getBody();
+    int count = (int)openLmisResponse.getData().get("count");
+    assertEquals(1, count);
+  }
+
+  @Test
+  public void shouldErrorWithIncorrectPermissionsForGettingStockCards() {
+    Long facilityId = 1L;
+    String productCode = "2";
+    Long stockCardId = 3L;
+    Integer numEntries = 100;
+    ResponseEntity response;
+
+    setupGetStockCardCalls();
+    setupPermissionCalls(Collections.<Right>emptyList());
+
+    response = controller.getStockCard(facilityId, productCode, numEntries, true, request);
+    assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+
+    response = controller.getStockCardById(facilityId, stockCardId, numEntries, true, request);
+    assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+
+    // This one does not return an error, but returns an empty stock card list
+    response = controller.getStockCards(facilityId, numEntries, false, true, request);
+    assertThat(response.getStatusCode(), is(HttpStatus.OK));
+    OpenLmisResponse openLmisResponse = (OpenLmisResponse)response.getBody();
+    List<StockCard> stockCards = (List<StockCard>)openLmisResponse.getData().get("stockCards");
+    assertEquals(0, stockCards.size());
+  }
+
+  @Test
+  public void shouldSucceedWithEmptyStockEventList() {
     List<StockEvent> events = Collections.emptyList();
     long facilityId = 1;
 
     ResponseEntity response = controller.processStock(facilityId, events, request);
-    assertThat(response.getStatusCode(),
-        is(HttpStatus.OK));
+    assertThat(response.getStatusCode(), is(HttpStatus.OK));
   }
 
   @Test
-  public void shouldErrorWithInvalidStockAdjustment() {
+  public void shouldErrorWithInvalidStockEvent() {
     List<StockEvent> events = Collections.singletonList(new StockEvent());
     long facilityId = 1;
 
     ResponseEntity response = controller.processStock(facilityId, events, request);
-    assertThat(response.getStatusCode(),
-            is(HttpStatus.BAD_REQUEST));
+    assertThat(response.getStatusCode(), is(HttpStatus.BAD_REQUEST));
   }
 
   @Test
-  public void shouldSucceedWithValidAdjustment() {
+  public void shouldSucceedWithValidStockEvent() {
     setupEvent();
 
     // test
@@ -189,6 +286,8 @@ public class StockCardControllerTest {
     when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
     when(stockCardService.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
     when(lotRepository.getLotOnHandByStockCardAndLot(eq(dummyCard.getId()), any(Long.class))).thenReturn(null);
+    setupPermissionCalls(Collections.singletonList(new Right("MANAGE_STOCK", RightType.REQUISITION)));
+
     ResponseEntity response = controller.processStock(fId, Collections.singletonList(event), request);
 
     // verify
@@ -209,18 +308,35 @@ public class StockCardControllerTest {
     Integer numEntries = 100;
 
     when(stockCardRepository.getStockCardByFacilityAndProduct(any(Long.class), any(String.class))).thenReturn(dummyCard);
+    setupPermissionCalls(Collections.singletonList(new Right("VIEW_STOCK_ON_HAND", RightType.REQUISITION)));
 
     boolean includeEmptyLots = false;
-    ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots, request);
     StockCard stockCard = (StockCard)response.getBody();
     assertNull(stockCard.getLotsOnHand());
 
     includeEmptyLots = true;
-    response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots, request);
     stockCard = (StockCard)response.getBody();
     assertNull(stockCard.getLotsOnHand());
   }
 
+
+  @Test
+  public void shouldErrorWithIncorrectPermissionsForProcessingStock() {
+    setupEvent();
+
+    // test
+    when(facilityRepository.getById(fId)).thenReturn(defaultFacility);
+    when(productService.getByCode(pCode)).thenReturn(defaultProduct);
+    when(stockAdjustmentReasonRepository.getAdjustmentReasonByName(reasonName)).thenReturn(reason);
+    when(stockCardService.getOrCreateStockCard(fId, pCode)).thenReturn(dummyCard);
+    when(lotRepository.getLotOnHandByStockCardAndLot(eq(dummyCard.getId()), any(Long.class))).thenReturn(null);
+    setupPermissionCalls(Collections.<Right>emptyList());
+
+    ResponseEntity response = controller.processStock(fId, Collections.singletonList(event), request);
+    assertThat(response.getStatusCode(), is(HttpStatus.FORBIDDEN));
+  }
 
   @Test
   public void shouldOnlyReturnEmptyLotsWhenRequested()
@@ -232,10 +348,8 @@ public class StockCardControllerTest {
     Integer numEntries = 100;
     Boolean countOnly = false;
 
-    when(stockCardRepository.getStockCardByFacilityAndProduct(any(Long.class), any(String.class))).thenReturn(dummyCard);
-    when(stockCardService.getStockCardById(any(Long.class), any(Long.class))).thenReturn(dummyCard);
-    when(stockCardService.getStockCards(any(Long.class))).thenReturn(new LinkedList<StockCard>(Arrays.asList(dummyCard)));
-
+    setupGetStockCardCalls();
+    setupPermissionCalls(Collections.singletonList(new Right("VIEW_STOCK_ON_HAND", RightType.REQUISITION)));
 
     /* Indicate that empty Lots shouldn’t be included in stockCard.getLotsOnHand().
        Then, below, verify that various method calls return just a single LotOnHand
@@ -244,18 +358,18 @@ public class StockCardControllerTest {
 
 
     associateTestLotsWithStockCard(dummyCard);
-    ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    ResponseEntity response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots, request);
     StockCard stockCard = (StockCard)response.getBody();
     assertEquals( 1, stockCard.getLotsOnHand().size());
 
     associateTestLotsWithStockCard(dummyCard);
-    response = controller.getStockCardById(facilityId, stockCardId, numEntries, includeEmptyLots);
+    response = controller.getStockCardById(facilityId, stockCardId, numEntries, includeEmptyLots, request);
     stockCard = (StockCard)response.getBody();
     assertEquals( 1, stockCard.getLotsOnHand().size());
 
 
     associateTestLotsWithStockCard(dummyCard);
-    response = controller.getStockCards(facilityId, numEntries, countOnly, includeEmptyLots);
+    response = controller.getStockCards(facilityId, numEntries, countOnly, includeEmptyLots, request);
     OpenLmisResponse openLmisResponse = (OpenLmisResponse)response.getBody();
     List<StockCard> stockCards = (List<StockCard>)openLmisResponse.getData().get("stockCards");
     stockCard = stockCards.get(0);
@@ -269,17 +383,17 @@ public class StockCardControllerTest {
 
 
     associateTestLotsWithStockCard(dummyCard);
-    response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots);
+    response = controller.getStockCard(facilityId, productCode, numEntries, includeEmptyLots, request);
     stockCard = (StockCard)response.getBody();
     assertEquals( 2, stockCard.getLotsOnHand().size());
 
     associateTestLotsWithStockCard(dummyCard);
-    response = controller.getStockCardById(facilityId, stockCardId, numEntries, includeEmptyLots);
+    response = controller.getStockCardById(facilityId, stockCardId, numEntries, includeEmptyLots, request);
     stockCard = (StockCard)response.getBody();
     assertEquals( 2, stockCard.getLotsOnHand().size());
 
     associateTestLotsWithStockCard(dummyCard);
-    response = controller.getStockCards(facilityId, numEntries, countOnly, includeEmptyLots);
+    response = controller.getStockCards(facilityId, numEntries, countOnly, includeEmptyLots, request);
     openLmisResponse = (OpenLmisResponse)response.getBody();
     stockCards = (List<StockCard>)openLmisResponse.getData().get("stockCards");
     stockCard = stockCards.get(0);
