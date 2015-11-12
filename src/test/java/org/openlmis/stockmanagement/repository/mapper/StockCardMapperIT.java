@@ -78,7 +78,7 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldInsertEntry() {
-    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null, null);
     mapper.insertEntry(entry);
 
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
@@ -87,7 +87,7 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldInsertEntryKeyValues() {
-    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null, null);
     mapper.insertEntry(entry);
     mapper.insertEntryKeyValue(entry, "vvmstatus", "1");
 
@@ -102,7 +102,7 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldGetStockCardByFacilityIdAndProductCode() {
-    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null, null);
     mapper.insertEntry(entry);
 
     StockCard stockCard = mapper.getByFacilityAndProduct(defaultFacility.getId(), defaultProduct.getCode());
@@ -113,11 +113,22 @@ public class StockCardMapperIT {
   @Test
   public void shouldSaveStockEntryOccurred() {
     Date occurred = DateUtil.parseDate("2015-10-30 00:00:00");
-    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, occurred);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, occurred, null);
     mapper.insertEntry(entry);
 
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
 
     assertThat(entries.get(0).getOccurred(), is(occurred));
+  }
+
+  @Test
+  public void shouldSaveStockEntryDocumentNumber() {
+    String referenceNumber = "110";
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null, referenceNumber);
+    mapper.insertEntry(entry);
+
+    List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
+
+    assertThat(entries.get(0).getReferenceNumber(), is(referenceNumber));
   }
 }

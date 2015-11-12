@@ -24,7 +24,7 @@ public class StockCardEntry extends BaseModel {
 
   private Long quantity;
 
-  String referenceNumber;
+  private String referenceNumber;
 
   private StockAdjustmentReason adjustmentReason;
 
@@ -37,12 +37,13 @@ public class StockCardEntry extends BaseModel {
   @JsonIgnore
   private List<StockCardEntryKV> keyValues;
 
-  public StockCardEntry(StockCard card, StockCardEntryType type, long quantity, Date occurred) {
+  public StockCardEntry(StockCard card, StockCardEntryType type, long quantity, Date occurred, String referenceNumber) {
     this.stockCard = Objects.requireNonNull(card);
     this.type = Objects.requireNonNull(type);
     this.quantity = Objects.requireNonNull(quantity);
     this.keyValues = new ArrayList<>();
     this.occurred = occurred;
+    this.referenceNumber = referenceNumber;
   }
 
   @JsonIgnore

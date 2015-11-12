@@ -14,7 +14,6 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import lombok.NoArgsConstructor;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
 import org.openlmis.core.domain.*;
 import org.openlmis.core.domain.StockAdjustmentReason;
 import org.openlmis.core.repository.FacilityRepository;
@@ -387,8 +386,9 @@ public class StockCardController extends BaseController
             }
 
             Date occurred = event.getOccurred();
+            String referenceNumber  = event.getReferenceNumber();
 
-            StockCardEntry entry = new StockCardEntry(card, entryType, quantity, occurred);
+            StockCardEntry entry = new StockCardEntry(card, entryType, quantity, occurred, referenceNumber);
             entry.setAdjustmentReason(reason);
             entry.setLotOnHand(lotOnHand);
             Map<String, String> customProps = event.getCustomProps();
