@@ -331,9 +331,7 @@ public class StockCardController extends BaseController
             logger.debug("Processing event: " + event);
 
             // validate event
-            if(!event.isValidAdjustment() &&
-                    !event.isValidIssue() &&
-                    !event.isValidReceipt())
+            if(!event.isValid())
                 return OpenLmisResponse.error(messageService.message("error.stock.event.invalid"), HttpStatus.BAD_REQUEST);
 
             // validate product

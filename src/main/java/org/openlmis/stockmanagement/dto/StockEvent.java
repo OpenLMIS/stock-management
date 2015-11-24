@@ -63,36 +63,44 @@ public class StockEvent {
     return q;
   }
 
+  /**
+   * True if this is a valid event.
+   * @return true if valid, false otherwise
+   */
   public boolean isValid() {
-    if( null == productCode
-      || null == quantity)
-      return false;
+    return isValidAdjustment() || isValidIssue() || isValidReceipt();
+  }
 
-    return true;
+  private boolean isValidProductAndQuantity() {
+    return (null != productCode && null != quantity);
   }
 
   public boolean isValidAdjustment() {
-    return isValid() &&
+    return isValidProductAndQuantity() &&
             StockEventType.ADJUSTMENT == type &&
             !StringUtils.isBlank(reasonName);
   }
 
   public boolean isValidIssue() {
     // Need to know what facility it is going to
-    return isValid() &&
+    return isValidProductAndQuantity() &&
             StockEventType.ISSUE == type &&
-            null != facilityId;
+            hasFacility();
   }
 
   public boolean isValidReceipt() {
     // Need to know what facility it is coming from
-    return isValid() &&
+    return isValidProductAndQuantity() &&
             StockEventType.RECEIPT == type &&
-            null != facilityId;
+            hasFacility();
   }
 
   public boolean hasLot() {
     //TODO
     return true;
+  }
+
+  private boolean hasFacility() {
+    return null == facilityId ? true : false;
   }
 }
