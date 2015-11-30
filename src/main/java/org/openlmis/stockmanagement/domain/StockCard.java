@@ -11,16 +11,16 @@ import org.openlmis.core.domain.BaseModel;
 import org.openlmis.core.domain.Facility;
 import org.openlmis.core.domain.Product;
 import org.openlmis.core.serializer.DateDeserializer;
-import org.openlmis.stockmanagement.util.LatestSyncedStrategy;
 import org.openlmis.stockmanagement.util.StockCardEntryKVReduceStrategy;
-import org.openlmis.stockmanagement.util.StockManagementUtils;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper=false)
-@JsonIgnoreProperties(ignoreUnknown=true)
+@EqualsAndHashCode(callSuper = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class StockCard extends BaseModel {
 
   @JsonIgnore
@@ -30,20 +30,15 @@ public class StockCard extends BaseModel {
 
   private Long totalQuantityOnHand;
 
-  @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
-  @JsonDeserialize(using=DateDeserializer.class)
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+  @JsonDeserialize(using = DateDeserializer.class)
   private Date effectiveDate;
-
-  private String expirationDates;
 
   private String notes;
 
   private List<StockCardEntry> entries;
 
   private List<LotOnHand> lotsOnHand;
-
-  @JsonIgnore
-  private List<StockCardEntryKV> keyValues;
 
   @JsonIgnore
   private StockCardEntryKVReduceStrategy strategy;
@@ -58,20 +53,11 @@ public class StockCard extends BaseModel {
     this.notes = "";
     this.entries = null;
     this.lotsOnHand = null;
-    this.keyValues = new ArrayList<>();
     this.strategy = null;
   }
 
   public void addToTotalQuantityOnHand(long quantity) {
     this.totalQuantityOnHand += quantity;
-  }
-
-  public Map<String, String> getCustomProps() {
-    if (null == strategy) strategy = new LatestSyncedStrategy();
-
-    Map<String, String> customProps = StockManagementUtils.getKeyValueAggregate(keyValues, strategy);
-
-    return customProps.isEmpty() ? null : customProps;
   }
 
   public static final StockCard createZeroedStockCard(Facility facility, Product product) {

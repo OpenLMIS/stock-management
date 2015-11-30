@@ -20,7 +20,7 @@ public class StockManagementUtils {
         Collection keys = CollectionUtils.collect(keyValues, new Transformer() {
             @Override
             public Object transform(Object o) {
-                return ((StockCardEntryKV) o).getKeyColumn();
+                return ((StockCardEntryKV) o).getKey();
             }
         });
 
@@ -33,11 +33,11 @@ public class StockManagementUtils {
             List<StockCardEntryKV> subList = (List<StockCardEntryKV>)CollectionUtils.select(keyValues, new Predicate() {
                 @Override
                 public boolean evaluate(Object o) {
-                    return ((StockCardEntryKV)o).getKeyColumn().equalsIgnoreCase((String)item);
+                    return ((StockCardEntryKV)o).getKey().equalsIgnoreCase((String)item);
                 }
             });
             StockCardEntryKV entry = strategy.reduce(subList);
-            returnMap.put(entry.getKeyColumn(), entry.getValueColumn());
+            returnMap.put(entry.getKey(), entry.getValue());
         }
 
         return returnMap;

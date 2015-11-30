@@ -11,23 +11,12 @@ import java.util.List;
 
 @Repository
 public interface StockCardMapper {
-
-  @Select("SELECT * FROM stock_card_entries" +
-      " WHERE stockcardid = #{stockCardId}" +
-      " AND createddate >= #{startDate}" +
-      " AND createddate < #{endDate}" +
-      " ORDER BY createddate DESC")
-  List<StockCardEntry> queryStockCardEntriesByDateRange(@Param("stockCardId")Long stockCardId,
-                                                        @Param("startDate")Date startDate,
-                                                        @Param("endDate")Date endDate);
   
   @Select("SELECT *" +
       " FROM stock_cards" +
       " WHERE facilityid = #{facilityId}" )
   @Results({
       @Result(property = "id", column = "id"),
-      @Result(property = "expirationDates", column = "id",
-          one = @One(select = "getStockCardLatestExpirationDates")),
       @Result(property = "facility", column = "facilityId", javaType = Facility.class,
           one = @One(select = "org.openlmis.core.repository.mapper.FacilityMapper.getById")),
       @Result(property = "product", column = "productId", javaType = Product.class,
@@ -46,8 +35,6 @@ public interface StockCardMapper {
           one = @One(select = "org.openlmis.core.repository.mapper.FacilityMapper.getById")),
       @Result(property = "product", column = "productId", javaType = Product.class,
           one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
-      @Result(property = "keyValues", column = "id", javaType = List.class,
-          one = @One(select = "getStockCardKeyValues")),
       @Result(property = "entries", column = "id", javaType = List.class,
           many = @Many(select = "getEntries")),
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
@@ -65,8 +52,6 @@ public interface StockCardMapper {
           one = @One(select = "org.openlmis.core.repository.mapper.FacilityMapper.getById")),
       @Result(property = "product", column = "productId", javaType = Product.class,
           one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
-      @Result(property = "keyValues", column = "id", javaType = List.class,
-          one = @One(select = "getStockCardKeyValues")),
       @Result(property = "entries", column = "id", javaType = List.class,
           many = @Many(select = "getEntries")),
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
@@ -81,8 +66,6 @@ public interface StockCardMapper {
       @Result(property = "id", column = "id"),
       @Result(property = "product", column = "productId", javaType = Product.class,
           one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById")),
-      @Result(property = "keyValues", column = "id", javaType = List.class,
-          one = @One(select = "getStockCardKeyValues")),
       @Result(property = "entries", column = "id", javaType = List.class,
           many = @Many(select = "getEntries")),
       @Result(property = "lotsOnHand", column = "id", javaType = List.class,
@@ -90,13 +73,20 @@ public interface StockCardMapper {
   })
   List<StockCard> getAllByFacility(@Param("facilityId")Long facilityId);
 
-  @Select("SELECT scekv.keycolumn" +
-          ", scekv.valuecolumn" +
+  @Select("SELECT scekv.keycolumn AS key" +
+          ", scekv.valuecolumn AS value" +
           ", scekv.modifieddate AS synceddate" +
           " FROM stock_card_entries sce" +
           "   JOIN stock_card_entry_key_values scekv ON scekv.stockcardentryid = sce.id" +
           " WHERE stockcardid = #{stockCardId}")
   List<StockCardEntryKV> getStockCardKeyValues(@Param("stockCardId")Long stockCardId);
+
+  @Select("SELECT keycolumn AS key" +
+      ", valuecolumn AS value" +
+      ", modifieddate AS synceddate" +
+      " FROM stock_card_entry_key_values" +
+      " WHERE stockcardentryid = #{stockCardEntryId}")
+  List<StockCardEntryKV> getStockCardEntryExtensionAttributes(@Param("stockCardEntryId") Long stockCardEntryId);
 
 
   @Select("SELECT *" +
@@ -104,18 +94,27 @@ public interface StockCardMapper {
       " WHERE stockcardid = #{stockCardId}" +
       " ORDER BY createddate DESC")
   @Results({
-      @Result(property = "keyValues", column = "id", javaType = List.class,
-          many = @Many(select = "getEntryKeyValues"))
+      @Result(property = "id", column = "id"),
+      @Result(property = "extensions", column = "id", javaType = List.class,
+          many = @Many(select = "getStockCardEntryExtensionAttributes"))
   })
   List<StockCardEntry> getEntries(@Param("stockCardId")Long stockCardId);
 
-  @Select("SELECT keycolumn" +
-      ", valuecolumn" +
-      ", modifieddate AS synceddate" +
-      " FROM stock_card_entry_key_values" +
-      " WHERE stockcardentryid = #{stockCardEntryId}")
-  List<StockCardEntryKV> getEntryKeyValues(@Param("stockCardEntryId")Long stockCardEntryId);
-
+  @Select("SELECT * FROM stock_card_entries" +
+      " WHERE stockcardid = #{stockCardId}" +
+      " AND createddate >= #{startDate}" +
+      " AND createddate < #{endDate}" +
+      " ORDER BY createddate DESC")
+  @Results({
+      @Result(property = "id", column = "id"),
+      @Result(property = "adjustmentReason", column = "adjustmentType",
+          one = @One(select ="org.openlmis.core.repository.mapper.StockAdjustmentReasonMapper.getByName")),
+      @Result(property = "extensions", column = "id", javaType = List.class,
+          many = @Many(select = "getStockCardEntryExtensionAttributes"))
+  })
+  List<StockCardEntry> queryStockCardEntriesByDateRange(@Param("stockCardId")Long stockCardId,
+                                                        @Param("startDate")Date startDate,
+                                                        @Param("endDate")Date endDate);
 
   @Select("SELECT tmp.expirationdates FROM (" +
       " SELECT DISTINCT" +
@@ -134,7 +133,7 @@ public interface StockCardMapper {
           " WHERE loh.stockcardid = #{stockCardId}")
   @Results({
       @Result(
-          property = "keyValues", column = "id", javaType = List.class,
+          property = "extensions", column = "id", javaType = List.class,
           one = @One(select = "getLotOnHandKeyValues")),
       @Result(
           property = "lot", column = "lotId", javaType = Lot.class,
@@ -142,8 +141,8 @@ public interface StockCardMapper {
   })
   List<LotOnHand> getLotsOnHand(@Param("stockCardId")Long stockCardId);
 
-  @Select("SELECT scekv.keycolumn" +
-          ", scekv.valuecolumn" +
+  @Select("SELECT scekv.keycolumn key" +
+          ", scekv.valuecolumn value" +
           ", scekv.modifieddate AS synceddate" +
           " FROM stock_card_entries sce" +
           "   JOIN stock_card_entry_key_values scekv ON scekv.stockcardentryid = sce.id" +

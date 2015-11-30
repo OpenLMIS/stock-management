@@ -34,14 +34,13 @@ public class StockCardEntry extends BaseModel {
 
   private Date occurred;
 
-  @JsonIgnore
-  private List<StockCardEntryKV> keyValues;
+  private List<StockCardEntryKV> extensions;
 
   public StockCardEntry(StockCard card, StockCardEntryType type, long quantity, Date occurred, String referenceNumber) {
     this.stockCard = Objects.requireNonNull(card);
     this.type = Objects.requireNonNull(type);
     this.quantity = Objects.requireNonNull(quantity);
-    this.keyValues = new ArrayList<>();
+    this.extensions = new ArrayList<>();
     this.occurred = occurred;
     this.referenceNumber = referenceNumber;
   }
@@ -62,17 +61,9 @@ public class StockCardEntry extends BaseModel {
     return true;
   }
 
-  public Map<String, String> getCustomProps() {
-    Map<String, String> customProps = new HashMap<>();
-    for (StockCardEntryKV item : keyValues) {
-      customProps.put(item.getKeyColumn(), item.getValueColumn());
-    }
-    return customProps.isEmpty() ? null : customProps;
-  }
-
   public void addKeyValue(String key, String value) {
     String newKey = key.trim().toLowerCase();
-    keyValues.add(new StockCardEntryKV(newKey, value, new Date()));
+    extensions.add(new StockCardEntryKV(newKey, value, new Date()));
   }
 
 }
