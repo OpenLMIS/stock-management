@@ -34,6 +34,8 @@ public class StockCard extends BaseModel {
   @JsonDeserialize(using=DateDeserializer.class)
   private Date effectiveDate;
 
+  private String expirationDates;
+
   private String notes;
 
   private List<StockCardEntry> entries;

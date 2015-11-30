@@ -12,6 +12,7 @@ import org.openlmis.stockmanagement.repository.mapper.StockCardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -82,6 +83,16 @@ public class StockCardRepository {
   public void updateStockCard(StockCard card) {
     Objects.requireNonNull(card);
     mapper.update(card);
+  }
+
+  public List<StockCard> queryStockCardByMovementDate(Long facilityId, Date startTime, Date endTime) {
+    List<StockCard> basicStockCards = mapper.queryStockCardBasicInfo(facilityId);
+    for (StockCard stockCard : basicStockCards) {
+      List<StockCardEntry> entries = mapper.queryStockCardEntriesByDateRange(facilityId, startTime, endTime);
+      stockCard.setEntries(entries);
+    }
+
+    return basicStockCards;
   }
 
   public Product getProductByStockCardId(Long stockCardId) {
