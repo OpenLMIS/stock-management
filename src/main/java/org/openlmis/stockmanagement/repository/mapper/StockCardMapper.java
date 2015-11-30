@@ -6,6 +6,7 @@ import org.openlmis.core.domain.Product;
 import org.openlmis.stockmanagement.domain.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -189,4 +190,10 @@ public interface StockCardMapper {
           ", modifiedDate = NOW()" +
       "WHERE id = #{id}")
   int update(StockCard card);
+
+  @Select("SELECT modifieddate FROM stock_cards " +
+      "WHERE facilityid = #{facilityId} " +
+      "ORDER BY modifieddate DESC LIMIT 1"
+  )
+  Date getLastUpdatedTimeforStockDataByFacility(Long facilityId);
 }

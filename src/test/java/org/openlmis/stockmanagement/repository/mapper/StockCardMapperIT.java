@@ -18,6 +18,7 @@ import org.openlmis.core.builder.FacilityBuilder;
 import org.openlmis.core.builder.ProductBuilder;
 import org.openlmis.core.domain.Facility;
 import org.openlmis.core.domain.Product;
+import org.openlmis.core.query.QueryExecutor;
 import org.openlmis.core.repository.mapper.FacilityMapper;
 import org.openlmis.core.repository.mapper.ProductMapper;
 import org.openlmis.core.utils.DateUtil;
@@ -32,14 +33,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
 import static com.natpryce.makeiteasy.MakeItEasy.a;
 import static com.natpryce.makeiteasy.MakeItEasy.make;
+import static com.natpryce.makeiteasy.MakeItEasy.with;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.openlmis.core.builder.ProductBuilder.active;
+import static org.openlmis.core.builder.ProductBuilder.code;
 
 @Category(IntegrationTests.class)
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -60,6 +66,9 @@ public class StockCardMapperIT {
   private StockCard defaultCard;
   private Facility defaultFacility;
   private Product defaultProduct;
+
+  @Autowired
+  private QueryExecutor queryExecutor;
 
   @Before
   public void setup() {
@@ -130,5 +139,35 @@ public class StockCardMapperIT {
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
 
     assertThat(entries.get(0).getReferenceNumber(), is(referenceNumber));
+  }
+
+  private void updateModifiedDateForStockCard(Timestamp modifiedDate, Long stockCardId) throws SQLException {
+    queryExecutor.executeUpdate("UPDATE stock_cards SET modifieddate = ? WHERE id = ?", modifiedDate, stockCardId);
+  }
+
+  @Test
+  public void shouldReturnLastUpdatedDateOfStockDataByFacilityId() throws SQLException {
+    Product product1 = make(a(ProductBuilder.defaultProduct, with(active, true), with(code, "Prod1")));
+    Product product2 = make(a(ProductBuilder.defaultProduct, with(active, true), with(code, "code2")));
+    productMapper.insert(product1);
+    productMapper.insert(product2);
+
+    StockCard stockCard1 = new StockCard();
+    stockCard1.setFacility(defaultFacility);
+    stockCard1.setProduct(product1);
+    StockCard stockCard2 = new StockCard();
+    stockCard2.setFacility(defaultFacility);
+    stockCard2.setProduct(product2);
+
+    mapper.insert(stockCard1);
+    mapper.insert(stockCard2);
+
+    Timestamp date1 = new Timestamp(DateUtil.parseDate("2015-12-12 12:12:12").getTime());
+    Timestamp date2 = new java.sql.Timestamp(DateUtil.parseDate("2015-11-11 11:11:11").getTime());
+    updateModifiedDateForStockCard(date1, stockCard1.getId());
+    updateModifiedDateForStockCard(date2, stockCard2.getId());
+
+    Date lastUpdatedTime = mapper.getLastUpdatedTimeforStockDataByFacility(defaultFacility.getId());
+    assertEquals("2015-12-12 12:12:12", DateUtil.formatDate(lastUpdatedTime));
   }
 }
