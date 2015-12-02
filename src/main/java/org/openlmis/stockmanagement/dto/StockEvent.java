@@ -101,6 +101,6 @@ public class StockEvent {
   }
 
   private boolean hasFacility() {
-    return null == facilityId ? true : false;
+    return null != facilityId;
   }
 }
