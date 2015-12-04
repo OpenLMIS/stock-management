@@ -104,7 +104,7 @@ public interface StockCardMapper {
       " WHERE stockcardid = #{stockCardId}" +
       " AND createddate >= #{startDate}" +
       " AND createddate < #{endDate}" +
-      " ORDER BY createddate DESC")
+      " ORDER BY id")
   @Results({
       @Result(property = "id", column = "id"),
       @Result(property = "adjustmentReason", column = "adjustmentType",
@@ -115,6 +115,19 @@ public interface StockCardMapper {
   List<StockCardEntry> queryStockCardEntriesByDateRange(@Param("stockCardId")Long stockCardId,
                                                         @Param("startDate")Date startDate,
                                                         @Param("endDate")Date endDate);
+
+  @Select("SELECT * FROM stock_card_entries" +
+      " WHERE stockcardid = #{stockCardId}" +
+      " ORDER BY id desc" +
+      " limit 6")
+  @Results({
+      @Result(property = "id", column = "id"),
+      @Result(property = "adjustmentReason", column = "adjustmentType",
+          one = @One(select = "org.openlmis.core.repository.mapper.StockAdjustmentReasonMapper.getByName")),
+      @Result(property = "extensions", column = "id", javaType = List.class,
+          many = @Many(select = "getStockCardEntryExtensionAttributes"))
+  })
+  List<StockCardEntry> queryLatestStockCardEntries(@Param("stockCardId") Long stockCardId);
 
   @Select("SELECT tmp.expirationdates FROM (" +
       " SELECT DISTINCT" +

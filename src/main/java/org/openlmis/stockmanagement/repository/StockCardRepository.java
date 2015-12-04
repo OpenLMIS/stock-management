@@ -12,10 +12,7 @@ import org.openlmis.stockmanagement.repository.mapper.StockCardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 @NoArgsConstructor
@@ -93,10 +90,25 @@ public class StockCardRepository {
     }
     for (StockCard stockCard : basicStockCards) {
       List<StockCardEntry> entries = mapper.queryStockCardEntriesByDateRange(stockCard.getId(), startTime, endTime);
+      if (entries == null) {
+        //if no movement return will query latest six movements
+        entries = mapper.queryLatestStockCardEntries(stockCard.getId());
+        entries = sortStockCardEntryById(entries);
+      }
       stockCard.setEntries(entries);
     }
 
     return basicStockCards;
+  }
+
+  private List<StockCardEntry> sortStockCardEntryById(List<StockCardEntry> entries) {
+    List<StockCardEntry> sortedEntries = new ArrayList<>();
+    if (entries != null) {
+      for (int i = entries.size() - 1; i >= 0; i--) {
+        sortedEntries.add(entries.get(i));
+      }
+    }
+    return sortedEntries;
   }
 
   public Product getProductByStockCardId(Long stockCardId) {
