@@ -12,30 +12,6 @@ import java.util.List;
 @Repository
 public interface StockCardMapper {
 
-  @Select("SELECT * FROM stock_card_entries" +
-      " WHERE stockcardid = #{stockCardId}" +
-      " AND createddate >= #{startDate}" +
-      " AND createddate < #{endDate}" +
-      " ORDER BY createddate DESC")
-  List<StockCardEntry> queryStockCardEntriesByDateRange(@Param("stockCardId")Long stockCardId,
-                                                        @Param("startDate")Date startDate,
-                                                        @Param("endDate")Date endDate);
-  
-  @Select("SELECT *" +
-      " FROM stock_cards" +
-      " WHERE facilityid = #{facilityId}" )
-  @Results({
-      @Result(property = "id", column = "id"),
-      @Result(property = "expirationDates", column = "id",
-          one = @One(select = "getStockCardLatestExpirationDates")),
-      @Result(property = "facility", column = "facilityId", javaType = Facility.class,
-          one = @One(select = "org.openlmis.core.repository.mapper.FacilityMapper.getById")),
-      @Result(property = "product", column = "productId", javaType = Product.class,
-          one = @One(select = "org.openlmis.core.repository.mapper.ProductMapper.getById"))
-
-  })
-  List<StockCard> queryStockCardBasicInfo(@Param("facilityId")Long facilityId);
-
   @Select("SELECT *" +
       " FROM stock_cards" +
       " WHERE facilityid = #{facilityId}" +
@@ -98,7 +74,6 @@ public interface StockCardMapper {
           " WHERE stockcardid = #{stockCardId}")
   List<StockCardEntryKV> getStockCardKeyValues(@Param("stockCardId")Long stockCardId);
 
-
   @Select("SELECT *" +
       " FROM stock_card_entries" +
       " WHERE stockcardid = #{stockCardId}" +
@@ -110,24 +85,11 @@ public interface StockCardMapper {
   List<StockCardEntry> getEntries(@Param("stockCardId")Long stockCardId);
 
   @Select("SELECT keycolumn" +
-      ", valuecolumn" +
-      ", modifieddate AS synceddate" +
-      " FROM stock_card_entry_key_values" +
-      " WHERE stockcardentryid = #{stockCardEntryId}")
+          ", valuecolumn" +
+          ", modifieddate AS synceddate" +
+          " FROM stock_card_entry_key_values" +
+          " WHERE stockcardentryid = #{stockCardEntryId}")
   List<StockCardEntryKV> getEntryKeyValues(@Param("stockCardEntryId")Long stockCardEntryId);
-
-
-  @Select("SELECT tmp.expirationdates FROM (" +
-      " SELECT DISTINCT" +
-      " sen.createddate," +
-      " (SELECT valuecolumn FROM stock_card_entry_key_values " +
-      "   WHERE stockcardentryid = sen.id" +
-      "   AND keycolumn='expirationdates') expirationdates" +
-      " FROM stock_card_entries sen" +
-      " WHERE sen.stockcardid = #{stockCardEntryId}" +
-      " ORDER BY sen.createddate DESC" +
-      " LIMIT 1) tmp")
-  String getStockCardLatestExpirationDates(@Param("stockCardEntryId")Long stockCardEntryId);
 
   @Select("SELECT loh.*" +
           " FROM lots_on_hand loh" +

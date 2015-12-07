@@ -87,22 +87,16 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldInsertEntry() {
-    StockCardEntry entry = getStockCardEntry();
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null, null);
     mapper.insertEntry(entry);
 
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
     assertThat(entries.size(), is(1));
   }
 
-  private StockCardEntry getStockCardEntry() {
-    Date occurred = DateUtil.parseDate("2015-10-30 00:00:00");
-    String referenceNumber = "110";
-    return new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, occurred, referenceNumber);
-  }
-
   @Test
   public void shouldInsertEntryKeyValues() {
-    StockCardEntry entry = getStockCardEntry();
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null, null);
     mapper.insertEntry(entry);
     mapper.insertEntryKeyValue(entry, "vvmstatus", "1");
 
@@ -117,7 +111,7 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldGetStockCardByFacilityIdAndProductCode() {
-    StockCardEntry entry = getStockCardEntry();
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null, null);
     mapper.insertEntry(entry);
 
     StockCard stockCard = mapper.getByFacilityAndProduct(defaultFacility.getId(), defaultProduct.getCode());
@@ -128,8 +122,7 @@ public class StockCardMapperIT {
   @Test
   public void shouldSaveStockEntryOccurred() {
     Date occurred = DateUtil.parseDate("2015-10-30 00:00:00");
-    StockCardEntry entry = getStockCardEntry();
-    entry.setOccurred(occurred);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, occurred, null);
     mapper.insertEntry(entry);
 
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
@@ -140,69 +133,12 @@ public class StockCardMapperIT {
   @Test
   public void shouldSaveStockEntryDocumentNumber() {
     String referenceNumber = "110";
-    StockCardEntry entry = getStockCardEntry();
-    entry.setReferenceNumber(referenceNumber);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null, referenceNumber);
     mapper.insertEntry(entry);
 
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
 
     assertThat(entries.get(0).getReferenceNumber(), is(referenceNumber));
-  }
-
-  @Test
-  public void shouldReturnStockCardBasicInfoWhenGiveFacilityId() throws Exception {
-
-    StockCardEntry entry = getStockCardEntry();
-    String expirationDate = "2015/1/1";
-    mapper.insertEntry(entry);
-    mapper.insertEntryKeyValue(entry, "expirationdates", expirationDate);
-
-    List<StockCard> stockCards = mapper.queryStockCardBasicInfo(defaultFacility.getId());
-    assertThat(stockCards.size(), is(1));
-    assertThat(stockCards.get(0).getExpirationDates(), is(expirationDate));
-    assertThat(stockCards.get(0).getProduct().getCode(), is(ProductBuilder.PRODUCT_CODE));
-  }
-
-  @Test
-  public void shouldReturnStockCardEntryByEntryDateRange() throws Exception {
-
-    Date startDate = new Date(System.currentTimeMillis());
-    int twelveHoursMillis = 12 * 60 * 60 * 1000;
-    Date dateBeforeStart = new Date(startDate.getTime() - twelveHoursMillis);
-
-    StockCardEntry entry = getStockCardEntry();
-    String expirationDate = "2015/1/1";
-    entry.setQuantity(10L);
-    entry.setType(StockCardEntryType.ADJUSTMENT);
-    mapper.insertEntry(entry);
-    mapper.insertEntryKeyValue(entry, "expirationdates", expirationDate);
-
-    Thread.sleep(1000);
-    Date endDate = new Date(System.currentTimeMillis());
-
-    List<StockCardEntry> stockCardsEntries = mapper.queryStockCardEntriesByDateRange(defaultCard.getId(),
-        dateBeforeStart, endDate);
-    assertThat(stockCardsEntries.size(), is(1));
-    assertThat(stockCardsEntries.get(0).getQuantity(), is(10L));
-    assertThat(stockCardsEntries.get(0).getType(), is(StockCardEntryType.ADJUSTMENT));
-
-
-    stockCardsEntries = mapper.queryStockCardEntriesByDateRange(defaultFacility.getId(),
-        dateBeforeStart, startDate);
-    assertThat(stockCardsEntries.size(), is(0));
-
-  }
-
-
-  @Test
-  public void shouldReturnStockCardLatestExpirationDates() throws Exception {
-    StockCardEntry entry = getStockCardEntry();
-    String expirationDate = "2015/1/1";
-    mapper.insertEntry(entry);
-    mapper.insertEntryKeyValue(entry, "expirationdates", expirationDate);
-
-    String latestExpirationDates = mapper.getStockCardLatestExpirationDates(defaultCard.getId());
-    assertThat(latestExpirationDates, is(expirationDate));
   }
 
   private void updateModifiedDateForStockCard(Timestamp modifiedDate, Long stockCardId) throws SQLException {
