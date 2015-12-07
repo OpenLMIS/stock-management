@@ -88,22 +88,16 @@ public class StockCardMapperIT {
   @Test
   public void shouldInsertEntry() {
     StockCardEntry entry = getStockCardEntry();
-    Timestamp date = new Timestamp(DateUtil.parseDate("2015-12-12 12:12:12").getTime());
-    entry.setCreatedDate(date);
     mapper.insertEntry(entry);
 
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
     assertThat(entries.size(), is(1));
-    assertThat(DateUtil.formatDate(entries.get(0).getCreatedDate()), is("2015-12-12 12:12:12"));
-
   }
 
   private StockCardEntry getStockCardEntry() {
     Date occurred = DateUtil.parseDate("2015-10-30 00:00:00");
     String referenceNumber = "110";
-    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, occurred, referenceNumber);
-    entry.setCreatedDate(new Date());
-    return entry;
+    return new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, occurred, referenceNumber);
   }
 
   @Test
