@@ -12,7 +12,6 @@ import org.openlmis.stockmanagement.repository.mapper.StockCardMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -76,8 +75,8 @@ public class StockCardRepository {
       throw new IllegalArgumentException("Already persisted stock card entries can not be saved " +
           "as persisted entry is immutable");
     mapper.insertEntry(entry);
-    for (StockCardEntryKV item : entry.getExtensions()) {
-      mapper.insertEntryKeyValue(entry, item.getKey(), item.getValue());
+    for (StockCardEntryKV item : entry.getKeyValues()) {
+      mapper.insertEntryKeyValue(entry, item.getKeyColumn(), item.getValueColumn());
     }
   }
 
@@ -88,11 +87,8 @@ public class StockCardRepository {
 
   public List<StockCard> queryStockCardByMovementDate(Long facilityId, Date startTime, Date endTime) {
     List<StockCard> basicStockCards = mapper.queryStockCardBasicInfo(facilityId);
-    if (basicStockCards == null) {
-      return new ArrayList<>();
-    }
     for (StockCard stockCard : basicStockCards) {
-      List<StockCardEntry> entries = mapper.queryStockCardEntriesByDateRange(stockCard.getId(), startTime, endTime);
+      List<StockCardEntry> entries = mapper.queryStockCardEntriesByDateRange(facilityId, startTime, endTime);
       stockCard.setEntries(entries);
     }
 

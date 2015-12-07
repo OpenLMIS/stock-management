@@ -12,7 +12,7 @@ import java.util.Date;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper=false)
 public class StockCardEntryKV {
-    private String key;
-    private String value;
+    private String keyColumn;
+    private String valueColumn;
     private Date syncedDate;
 }

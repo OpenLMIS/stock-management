@@ -108,9 +108,9 @@ public class StockCardMapperIT {
 
     List<StockCardEntry> entries = mapper.getEntries(defaultCard.getId());
 
-    for (StockCardEntryKV kv : entries.get(0).getExtensions()) {
-      if (kv.getKey().equalsIgnoreCase("vvmstatus")) {
-        assertEquals(kv.getValue(), "1");
+    for (StockCardEntryKV kv : entries.get(0).getKeyValues()) {
+      if (kv.getKeyColumn().equalsIgnoreCase("vvmstatus")) {
+        assertEquals(kv.getValueColumn(), "1");
       }
     }
   }
@@ -159,6 +159,7 @@ public class StockCardMapperIT {
 
     List<StockCard> stockCards = mapper.queryStockCardBasicInfo(defaultFacility.getId());
     assertThat(stockCards.size(), is(1));
+    assertThat(stockCards.get(0).getExpirationDates(), is(expirationDate));
     assertThat(stockCards.get(0).getProduct().getCode(), is(ProductBuilder.PRODUCT_CODE));
   }
 
@@ -176,6 +177,7 @@ public class StockCardMapperIT {
     mapper.insertEntry(entry);
     mapper.insertEntryKeyValue(entry, "expirationdates", expirationDate);
 
+    Thread.sleep(1000);
     Date endDate = new Date(System.currentTimeMillis());
 
     List<StockCardEntry> stockCardsEntries = mapper.queryStockCardEntriesByDateRange(defaultCard.getId(),
