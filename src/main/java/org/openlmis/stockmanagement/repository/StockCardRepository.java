@@ -72,6 +72,10 @@ public class StockCardRepository {
     if (entry.hasId())
       throw new IllegalArgumentException("Already persisted stock card entries can not be saved " +
           "as persisted entry is immutable");
+    //add synced time from mobile application, if no using the current time
+    if (entry.getCreatedDate() == null) {
+      entry.setCreatedDate(new Date());
+    }
     mapper.insertEntry(entry);
     for (StockCardEntryKV item : entry.getExtensions()) {
       mapper.insertEntryKeyValue(entry, item.getKey(), item.getValue());

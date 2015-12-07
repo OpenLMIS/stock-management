@@ -209,7 +209,7 @@ public interface StockCardMapper {
       ", #{notes}" +
       ", #{adjustmentReason.name}" +
       ", #{createdBy}" +
-      ", NOW()" +
+      ", #{createdDate}" +
       ", #{modifiedBy}" +
       ", NOW()" +
       ", #{occurred}" +
