@@ -99,9 +99,7 @@ public class StockCardMapperIT {
   }
 
   private StockCardEntry getStockCardEntry() {
-    Date occurred = DateUtil.parseDate("2015-10-30 00:00:00");
-    String referenceNumber = "110";
-    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, occurred, referenceNumber);
+    StockCardEntry entry = new StockCardEntry(defaultCard, StockCardEntryType.CREDIT, 1L, null, null);
     entry.setCreatedDate(new Date());
     return entry;
   }
@@ -169,32 +167,26 @@ public class StockCardMapperIT {
   }
 
   @Test
-  public void shouldReturnStockCardEntryByEntryDateRange() throws Exception {
-
-    Date startDate = new Date(System.currentTimeMillis());
-    int twelveHoursMillis = 12 * 60 * 60 * 1000;
-    Date dateBeforeStart = new Date(startDate.getTime() - twelveHoursMillis);
+  public void shouldReturnStockCardEntryByOccurredDateRange() throws Exception {
 
     StockCardEntry entry = getStockCardEntry();
-    String expirationDate = "2015/1/1";
-    entry.setQuantity(10L);
-    entry.setType(StockCardEntryType.ADJUSTMENT);
+    entry.setOccurred(DateUtil.parseDate("2015-11-12 00:00:00"));
     mapper.insertEntry(entry);
-    mapper.insertEntryKeyValue(entry, "expirationdates", expirationDate);
 
-    Date endDate = new Date(System.currentTimeMillis());
+    StockCardEntry entry2 = getStockCardEntry();
+    entry2.setOccurred(DateUtil.parseDate("2015-11-13 00:00:00"));
+    mapper.insertEntry(entry2);
+
+    StockCardEntry entry3 = getStockCardEntry();
+    entry3.setOccurred(DateUtil.parseDate("2015-11-14 00:00:00"));
+    mapper.insertEntry(entry3);
+
+    Date startDate = DateUtil.parseDate("2015-11-12 00:00:00");
+    Date endDate = DateUtil.parseDate("2015-11-13 00:00:00");
 
     List<StockCardEntry> stockCardsEntries = mapper.queryStockCardEntriesByDateRange(defaultCard.getId(),
-        dateBeforeStart, endDate);
+        startDate, endDate);
     assertThat(stockCardsEntries.size(), is(1));
-    assertThat(stockCardsEntries.get(0).getQuantity(), is(10L));
-    assertThat(stockCardsEntries.get(0).getType(), is(StockCardEntryType.ADJUSTMENT));
-
-
-    stockCardsEntries = mapper.queryStockCardEntriesByDateRange(defaultFacility.getId(),
-        dateBeforeStart, startDate);
-    assertThat(stockCardsEntries.size(), is(0));
-
   }
 
 

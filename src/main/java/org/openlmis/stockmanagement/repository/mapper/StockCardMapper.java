@@ -102,8 +102,8 @@ public interface StockCardMapper {
 
   @Select("SELECT * FROM stock_card_entries" +
       " WHERE stockcardid = #{stockCardId}" +
-      " AND createddate >= #{startDate}" +
-      " AND createddate < #{endDate}" +
+      " AND occurred >= #{startDate}" +
+      " AND occurred < #{endDate}" +
       " ORDER BY id")
   @Results({
       @Result(property = "id", column = "id"),

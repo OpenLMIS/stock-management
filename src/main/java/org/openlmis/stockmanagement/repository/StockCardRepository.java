@@ -87,7 +87,7 @@ public class StockCardRepository {
     mapper.update(card);
   }
 
-  public List<StockCard> queryStockCardByMovementDate(Long facilityId, Date startTime, Date endTime) {
+  public List<StockCard> queryStockCardByOccurred(Long facilityId, Date startTime, Date endTime) {
     List<StockCard> basicStockCards = mapper.queryStockCardBasicInfo(facilityId);
     if (basicStockCards == null) {
       return new ArrayList<>();

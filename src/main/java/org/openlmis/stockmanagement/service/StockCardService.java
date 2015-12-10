@@ -104,8 +104,8 @@ public class StockCardService {
     return repository.getStockCards(facilityId);
   }
 
-  public List<StockCard> queryStockCardByMovementDate(Long facilityId, Date startTime, Date endTime) {
-    return repository.queryStockCardByMovementDate(facilityId, startTime, endTime);
+  public List<StockCard> queryStockCardByOccurred(Long facilityId, Date startTime, Date endTime) {
+    return repository.queryStockCardByOccurred(facilityId, startTime, endTime);
   }
 
   @Transactional

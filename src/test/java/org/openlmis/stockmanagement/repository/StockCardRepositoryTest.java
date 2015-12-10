@@ -88,7 +88,7 @@ public class StockCardRepositoryTest {
     StockCardEntry entry = new StockCardEntry();
     when(mapper.queryStockCardEntriesByDateRange(dummyCard.getId(), startDate, endDate)).thenReturn(asList(entry));
 
-    List<StockCard> stockCards = stockCardRepository.queryStockCardByMovementDate(facilityId, startDate, endDate);
+    List<StockCard> stockCards = stockCardRepository.queryStockCardByOccurred(facilityId, startDate, endDate);
     assertThat(stockCards.size(), is(1));
   }
 }
