@@ -227,13 +227,9 @@ public class StockCardMapperIT {
   public void shouldUpdateAllStockCardsWithFacilityId() throws InterruptedException {
     insertTwoStockCardsForDefaultFacility();
 
-    mapper.updateAllStockCardSyncTimeForFacilityToNow(defaultFacility.getId());
+    int numOfResults = mapper.updateAllStockCardSyncTimeForFacilityToNow(defaultFacility.getId());
 
-    List<StockCard> allByFacility = mapper.getAllByFacility(defaultFacility.getId());
-
-    for (StockCard stockCard : allByFacility) {
-      assertNotEquals(stockCard.getModifiedDate(), stockCard.getCreatedDate());
-    }
+    assertEquals(2, numOfResults);
   }
 
   private void insertTwoStockCardsForDefaultFacility() {
