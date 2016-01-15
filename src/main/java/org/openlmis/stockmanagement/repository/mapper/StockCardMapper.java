@@ -246,4 +246,8 @@ public interface StockCardMapper {
       "ORDER BY modifieddate DESC LIMIT 1"
   )
   Date getLastUpdatedTimeforStockDataByFacility(Long facilityId);
+
+  void updateAllStockCardSyncTimeForFacilityToNow(long facilityId);
+
+  void updateStockCardSyncTimeToNow(long facilityId, List<String> stockCardProductCodeList);
 }

@@ -127,4 +127,12 @@ public class StockCardService {
   public void addStockCardEntries(List<StockCardEntry> entries) {
     for(StockCardEntry entry : entries) addStockCardEntry(entry);
   }
+
+  public void updateAllStockCardSyncTimeForFacilityToNow(long facilityId){
+    repository.updateAllStockCardSyncTimeForFacility(facilityId);
+  }
+
+  public void updateStockCardSyncTimeToNow(long facilityId, List<String> stockCardProductCodeList) {
+    repository.updateStockCardSyncTimeToNow(facilityId, stockCardProductCodeList);
+  }
 }

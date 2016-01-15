@@ -19,6 +19,7 @@ import org.openlmis.stockmanagement.repository.mapper.StockCardMapper;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -90,5 +91,18 @@ public class StockCardRepositoryTest {
 
     List<StockCard> stockCards = stockCardRepository.queryStockCardByOccurred(facilityId, startDate, endDate);
     assertThat(stockCards.size(), is(1));
+  }
+
+  @Test
+  public void shouldCallMapperUpdateAllStockCardSyncTimeForFacility() {
+    stockCardRepository.updateAllStockCardSyncTimeForFacility(123L);
+    verify(mapper).updateAllStockCardSyncTimeForFacilityToNow(123L);
+  }
+
+  @Test
+  public void shouldCallMapperUpdateStockCardSyncTimeToNow() {
+    ArrayList<String> stockCardProductCodeList = new ArrayList<>();
+    stockCardRepository.updateStockCardSyncTimeToNow(123L, stockCardProductCodeList);
+    verify(mapper).updateStockCardSyncTimeToNow(123L,stockCardProductCodeList);
   }
 }

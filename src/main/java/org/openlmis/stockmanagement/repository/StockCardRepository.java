@@ -118,4 +118,12 @@ public class StockCardRepository {
   public Product getProductByStockCardId(Long stockCardId) {
     return mapper.getProductByStockCardId(stockCardId);
   }
+
+  public void updateAllStockCardSyncTimeForFacility(long facilityId) {
+    mapper.updateAllStockCardSyncTimeForFacilityToNow(facilityId);
+  }
+
+  public void updateStockCardSyncTimeToNow(long facilityId, List<String> stockCardProductCodeList) {
+    mapper.updateStockCardSyncTimeToNow(facilityId, stockCardProductCodeList);
+  }
 }

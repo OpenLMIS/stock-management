@@ -19,11 +19,13 @@ import org.openlmis.stockmanagement.repository.StockCardRepository;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import static com.natpryce.makeiteasy.MakeItEasy.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @Category(UnitTests.class)
@@ -178,5 +180,18 @@ public class StockCardServiceTest {
 
         // verify
         assertEquals(expectedLotOnHand, lotOnHand);
+    }
+
+    @Test
+    public void shouldCallRepositoryUpdateAllStockCardSyncTimeForFacility() {
+        service.updateAllStockCardSyncTimeForFacilityToNow(123L);
+        verify(repository).updateAllStockCardSyncTimeForFacility(123L);
+    }
+
+    @Test
+    public void shouldCallRepositoryUpdateStockCardSyncTimeToNow() {
+        ArrayList<String> stockCardProductCodeList = new ArrayList<>();
+        service.updateStockCardSyncTimeToNow(123L, stockCardProductCodeList);
+        verify(repository).updateStockCardSyncTimeToNow(123L,stockCardProductCodeList);
     }
 }
