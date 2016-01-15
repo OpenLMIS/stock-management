@@ -11,9 +11,11 @@
 package org.openlmis.stockmanagement.repository.mapper;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import org.junit.runner.notification.RunListener;
 import org.openlmis.core.builder.FacilityBuilder;
 import org.openlmis.core.builder.ProductBuilder;
 import org.openlmis.core.domain.Facility;
@@ -44,6 +46,7 @@ import static com.natpryce.makeiteasy.MakeItEasy.with;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.openlmis.core.builder.ProductBuilder.active;
 import static org.openlmis.core.builder.ProductBuilder.code;
 
@@ -69,6 +72,8 @@ public class StockCardMapperIT {
 
   @Autowired
   private QueryExecutor queryExecutor;
+  private StockCard stockCard1;
+  private StockCard stockCard2;
 
   @Before
   public void setup() {
@@ -207,20 +212,7 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldReturnLastUpdatedDateOfStockDataByFacilityId() throws SQLException {
-    Product product1 = make(a(ProductBuilder.defaultProduct, with(active, true), with(code, "Prod1")));
-    Product product2 = make(a(ProductBuilder.defaultProduct, with(active, true), with(code, "code2")));
-    productMapper.insert(product1);
-    productMapper.insert(product2);
-
-    StockCard stockCard1 = new StockCard();
-    stockCard1.setFacility(defaultFacility);
-    stockCard1.setProduct(product1);
-    StockCard stockCard2 = new StockCard();
-    stockCard2.setFacility(defaultFacility);
-    stockCard2.setProduct(product2);
-
-    mapper.insert(stockCard1);
-    mapper.insert(stockCard2);
+    insertTwoStockCardsForDefaultFacility();
 
     Timestamp date1 = new Timestamp(DateUtil.parseDate("2025-12-12 12:12:12").getTime());
     Timestamp date2 = new Timestamp(DateUtil.parseDate("2025-11-11 11:11:11").getTime());
@@ -229,5 +221,34 @@ public class StockCardMapperIT {
 
     Date lastUpdatedTime = mapper.getLastUpdatedTimeforStockDataByFacility(defaultFacility.getId());
     assertEquals("2025-12-12 12:12:12", DateUtil.formatDate(lastUpdatedTime));
+  }
+
+  @Test @Ignore
+  public void shouldUpdateAllStockCardsWithFacilityId() throws InterruptedException {
+    insertTwoStockCardsForDefaultFacility();
+
+    mapper.updateAllStockCardSyncTimeForFacilityToNow(defaultFacility.getId());
+
+    List<StockCard> allByFacility = mapper.getAllByFacility(defaultFacility.getId());
+
+    for (StockCard stockCard : allByFacility) {
+      assertNotEquals(stockCard.getModifiedDate(), stockCard.getCreatedDate());
+    }
+  }
+
+  private void insertTwoStockCardsForDefaultFacility() {
+    Product product1 = make(a(ProductBuilder.defaultProduct, with(active, true), with(code, "Prod1")));
+    Product product2 = make(a(ProductBuilder.defaultProduct, with(active, true), with(code, "code2")));
+    productMapper.insert(product1);
+    productMapper.insert(product2);
+
+    stockCard1 = new StockCard();
+    stockCard1.setFacility(defaultFacility);
+    stockCard1.setProduct(product1);
+    stockCard2 = new StockCard();
+    stockCard2.setFacility(defaultFacility);
+    stockCard2.setProduct(product2);
+    mapper.insert(stockCard1);
+    mapper.insert(stockCard2);
   }
 }

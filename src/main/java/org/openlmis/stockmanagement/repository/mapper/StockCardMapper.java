@@ -247,7 +247,14 @@ public interface StockCardMapper {
   )
   Date getLastUpdatedTimeforStockDataByFacility(Long facilityId);
 
+  @Update("UPDATE stock_cards " +
+      "SET modifieddate = NOW() " +
+      "WHERE facilityid = #{facilityId}")
   void updateAllStockCardSyncTimeForFacilityToNow(long facilityId);
 
-  void updateStockCardSyncTimeToNow(long facilityId, List<String> stockCardProductCodeList);
+  @Update("UPDATE stock_cards " +
+      "SET modifieddate = NOW() " +
+      "WHERE facilityid = #{facilityId} " +
+      "AND productid IN (SELECT id FROM products WHERE code IN (#{stockCardProductCodes}))")
+  void updateStockCardSyncTimeToNow(long facilityId, List<String> stockCardProductCodes);
 }
