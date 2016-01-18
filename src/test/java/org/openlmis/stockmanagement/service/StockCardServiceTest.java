@@ -201,7 +201,7 @@ public class StockCardServiceTest {
         when(repository.getStockCards(123L)).thenReturn(asList(stockCard1, stockCard2));
 
         service.updateStockCardSyncTimeToNow(123L, asList("P1"));
-        verify(repository).updateStockCardSyncTimeToNow(123L, "P1");
-        verify(repository, never()).updateStockCardSyncTimeToNow(123L, "P2");
+        verify(repository, never()).updateStockCardSyncTimeToNow(123L, "P1");
+        verify(repository).updateStockCardSyncTimeToNow(123L, "P2");
     }
 }

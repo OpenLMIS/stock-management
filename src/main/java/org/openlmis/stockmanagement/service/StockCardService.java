@@ -145,7 +145,7 @@ public class StockCardService {
     return FluentIterable.from(repository.getStockCards(facilityId)).filter(new Predicate<StockCard>() {
         @Override
         public boolean apply(StockCard input) {
-          return stockCardProductCodeList.contains(input.getProduct().getCode());
+          return !stockCardProductCodeList.contains(input.getProduct().getCode());
         }
       }).toList();
   }
