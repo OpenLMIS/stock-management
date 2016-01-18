@@ -255,6 +255,6 @@ public interface StockCardMapper {
   @Update("UPDATE stock_cards " +
       "SET modifieddate = NOW() " +
       "WHERE facilityid = #{facilityId} " +
-      "AND productid IN (SELECT id FROM products WHERE code IN (#{stockCardProductCodes}))")
-  int updateStockCardSyncTimeToNow(long facilityId, List<String> stockCardProductCodes);
+      "AND productid = (SELECT id FROM products WHERE code = (#{stockCardProductCode}))")
+  int updateStockCardToSyncTimeToNow(@Param("facilityId") long facilityId, @Param("stockCardProductCode") String stockCardProductCode);
 }

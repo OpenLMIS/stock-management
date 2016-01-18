@@ -21,10 +21,13 @@ import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static com.natpryce.makeiteasy.MakeItEasy.*;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -189,9 +192,16 @@ public class StockCardServiceTest {
     }
 
     @Test
-    public void shouldCallRepositoryUpdateStockCardSyncTimeToNow() {
-        ArrayList<String> stockCardProductCodeList = new ArrayList<>();
-        service.updateStockCardSyncTimeToNow(123L, stockCardProductCodeList);
-        verify(repository).updateStockCardSyncTimeToNow(123L,stockCardProductCodeList);
+    public void shouldCallRepositoryUpdateStockCardSyncTimeToNowForProductCodesNotInList() {
+
+        StockCard stockCard1 = new StockCard();
+        stockCard1.setProduct(make(a(ProductBuilder.defaultProduct, with(ProductBuilder.code, "P1"))));
+        StockCard stockCard2 = new StockCard();
+        stockCard2.setProduct(make(a(ProductBuilder.defaultProduct, with(ProductBuilder.code, "P2"))));
+        when(repository.getStockCards(123L)).thenReturn(asList(stockCard1, stockCard2));
+
+        service.updateStockCardSyncTimeToNow(123L, asList("P1"));
+        verify(repository).updateStockCardSyncTimeToNow(123L, "P1");
+        verify(repository, never()).updateStockCardSyncTimeToNow(123L, "P2");
     }
 }

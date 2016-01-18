@@ -123,7 +123,7 @@ public class StockCardRepository {
     mapper.updateAllStockCardSyncTimeForFacilityToNow(facilityId);
   }
 
-  public void updateStockCardSyncTimeToNow(long facilityId, List<String> stockCardProductCodeList) {
-    mapper.updateStockCardSyncTimeToNow(facilityId, stockCardProductCodeList);
+  public void updateStockCardSyncTimeToNow(long facilityId, String stockCardProductCode) {
+    mapper.updateStockCardToSyncTimeToNow(facilityId, stockCardProductCode);
   }
 }

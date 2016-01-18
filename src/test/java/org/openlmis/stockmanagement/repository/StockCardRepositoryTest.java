@@ -101,8 +101,8 @@ public class StockCardRepositoryTest {
 
   @Test
   public void shouldCallMapperUpdateStockCardSyncTimeToNow() {
-    ArrayList<String> stockCardProductCodeList = new ArrayList<>();
-    stockCardRepository.updateStockCardSyncTimeToNow(123L, stockCardProductCodeList);
-    verify(mapper).updateStockCardSyncTimeToNow(123L,stockCardProductCodeList);
+    String stockCardProductCode = "123";
+    stockCardRepository.updateStockCardSyncTimeToNow(123L, stockCardProductCode);
+    verify(mapper).updateStockCardToSyncTimeToNow(123L,stockCardProductCode);
   }
 }

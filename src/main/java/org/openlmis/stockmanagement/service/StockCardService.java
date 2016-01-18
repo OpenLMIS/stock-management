@@ -10,6 +10,9 @@
 
 package org.openlmis.stockmanagement.service;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import lombok.NoArgsConstructor;
 import org.openlmis.core.repository.ProductRepository;
 import org.openlmis.core.service.*;
@@ -132,7 +135,18 @@ public class StockCardService {
     repository.updateAllStockCardSyncTimeForFacility(facilityId);
   }
 
-  public void updateStockCardSyncTimeToNow(long facilityId, List<String> stockCardProductCodeList) {
-    repository.updateStockCardSyncTimeToNow(facilityId, stockCardProductCodeList);
+  public void updateStockCardSyncTimeToNow(long facilityId, final List<String> stockCardProductCodeList) {
+    for (StockCard stockCard : getStockCardsNotInList(facilityId, stockCardProductCodeList)) {
+      repository.updateStockCardSyncTimeToNow(facilityId, stockCard.getProduct().getCode());
+    }
+  }
+
+  private List<StockCard> getStockCardsNotInList(long facilityId, final List<String> stockCardProductCodeList) {
+    return FluentIterable.from(repository.getStockCards(facilityId)).filter(new Predicate<StockCard>() {
+        @Override
+        public boolean apply(StockCard input) {
+          return stockCardProductCodeList.contains(input.getProduct().getCode());
+        }
+      }).toList();
   }
 }

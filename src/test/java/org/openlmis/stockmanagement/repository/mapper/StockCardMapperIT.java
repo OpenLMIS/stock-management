@@ -11,11 +11,9 @@
 package org.openlmis.stockmanagement.repository.mapper;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
-import org.junit.runner.notification.RunListener;
 import org.openlmis.core.builder.FacilityBuilder;
 import org.openlmis.core.builder.ProductBuilder;
 import org.openlmis.core.domain.Facility;
@@ -43,6 +41,7 @@ import java.util.List;
 import static com.natpryce.makeiteasy.MakeItEasy.a;
 import static com.natpryce.makeiteasy.MakeItEasy.make;
 import static com.natpryce.makeiteasy.MakeItEasy.with;
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -212,7 +211,7 @@ public class StockCardMapperIT {
 
   @Test
   public void shouldReturnLastUpdatedDateOfStockDataByFacilityId() throws SQLException {
-    insertTwoStockCardsForDefaultFacility();
+    insertTwoMoreStockCardsForDefaultFacility();
 
     Timestamp date1 = new Timestamp(DateUtil.parseDate("2025-12-12 12:12:12").getTime());
     Timestamp date2 = new Timestamp(DateUtil.parseDate("2025-11-11 11:11:11").getTime());
@@ -223,16 +222,25 @@ public class StockCardMapperIT {
     assertEquals("2025-12-12 12:12:12", DateUtil.formatDate(lastUpdatedTime));
   }
 
-  @Test @Ignore
+  @Test
   public void shouldUpdateAllStockCardsWithFacilityId() throws InterruptedException {
-    insertTwoStockCardsForDefaultFacility();
+    insertTwoMoreStockCardsForDefaultFacility();
 
     int numOfResults = mapper.updateAllStockCardSyncTimeForFacilityToNow(defaultFacility.getId());
 
-    assertEquals(2, numOfResults);
+    assertEquals(3, numOfResults);
   }
 
-  private void insertTwoStockCardsForDefaultFacility() {
+  @Test
+  public void shouldUpdateStockCardsNotInProductCodeList() throws Exception {
+    insertTwoMoreStockCardsForDefaultFacility();
+
+    int numOfResults = mapper.updateStockCardToSyncTimeToNow(defaultFacility.getId(), "code2");
+
+    assertEquals(1, numOfResults);
+  }
+
+  private void insertTwoMoreStockCardsForDefaultFacility() {
     Product product1 = make(a(ProductBuilder.defaultProduct, with(active, true), with(code, "Prod1")));
     Product product2 = make(a(ProductBuilder.defaultProduct, with(active, true), with(code, "code2")));
     productMapper.insert(product1);
