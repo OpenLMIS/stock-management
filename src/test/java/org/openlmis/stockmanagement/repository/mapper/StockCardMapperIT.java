@@ -38,14 +38,10 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
-import static com.natpryce.makeiteasy.MakeItEasy.a;
-import static com.natpryce.makeiteasy.MakeItEasy.make;
-import static com.natpryce.makeiteasy.MakeItEasy.with;
-import static java.util.Arrays.asList;
+import static com.natpryce.makeiteasy.MakeItEasy.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.openlmis.core.builder.ProductBuilder.active;
 import static org.openlmis.core.builder.ProductBuilder.code;
 
@@ -207,19 +203,6 @@ public class StockCardMapperIT {
 
   private void updateModifiedDateForStockCard(Timestamp modifiedDate, Long stockCardId) throws SQLException {
     queryExecutor.executeUpdate("UPDATE stock_cards SET modifieddate = ? WHERE id = ?", modifiedDate, stockCardId);
-  }
-
-  @Test
-  public void shouldReturnLastUpdatedDateOfStockDataByFacilityId() throws SQLException {
-    insertTwoMoreStockCardsForDefaultFacility();
-
-    Timestamp date1 = new Timestamp(DateUtil.parseDate("2025-12-12 12:12:12").getTime());
-    Timestamp date2 = new Timestamp(DateUtil.parseDate("2025-11-11 11:11:11").getTime());
-    updateModifiedDateForStockCard(date1, stockCard1.getId());
-    updateModifiedDateForStockCard(date2, stockCard2.getId());
-
-    Date lastUpdatedTime = mapper.getLastUpdatedTimeforStockDataByFacility(defaultFacility.getId());
-    assertEquals("2025-12-12 12:12:12", DateUtil.formatDate(lastUpdatedTime));
   }
 
   @Test

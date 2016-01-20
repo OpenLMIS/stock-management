@@ -241,12 +241,6 @@ public interface StockCardMapper {
       "WHERE id = #{id}")
   int update(StockCard card);
 
-  @Select("SELECT modifieddate FROM stock_cards " +
-      "WHERE facilityid = #{facilityId} " +
-      "ORDER BY modifieddate DESC LIMIT 1"
-  )
-  Date getLastUpdatedTimeforStockDataByFacility(Long facilityId);
-
   @Update("UPDATE stock_cards " +
       "SET modifieddate = NOW() " +
       "WHERE facilityid = #{facilityId}")
