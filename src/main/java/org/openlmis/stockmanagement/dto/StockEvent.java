@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.collections.map.DefaultedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.openlmis.core.domain.StockAdjustmentReason;
 import org.openlmis.core.hash.Encoder;
@@ -22,6 +23,7 @@ import org.openlmis.core.serializer.DateTimeDeserializer;
 import org.openlmis.stockmanagement.domain.Lot;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -110,9 +112,10 @@ public class StockEvent {
     }
 
     public String getSyncUpHash() {
-        String eventContentString = this.facilityId.toString() + this.type + this.productCode
-                + this.occurred + this.createdTime
-                + this.quantity + this.reasonName + this.referenceNumber + customProps.get("SOH");
+        Map decoratedProps = DefaultedMap.decorate(customProps == null ? new HashMap() : customProps, "");
+        String eventContentString = this.facilityId.toString() + this.type + this.productCode +
+                this.occurred + this.createdTime + this.quantity +
+                this.reasonName + this.referenceNumber + decoratedProps.get("SOH");
         return Encoder.hash(eventContentString);
     }
 
