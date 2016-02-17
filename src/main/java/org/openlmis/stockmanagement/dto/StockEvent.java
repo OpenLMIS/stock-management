@@ -16,6 +16,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.openlmis.core.domain.StockAdjustmentReason;
+import org.openlmis.core.hash.Encoder;
 import org.openlmis.core.serializer.DateDeserializer;
 import org.openlmis.core.serializer.DateTimeDeserializer;
 import org.openlmis.stockmanagement.domain.Lot;
@@ -24,88 +25,98 @@ import java.util.Date;
 import java.util.Map;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
-@JsonIgnoreProperties(ignoreUnknown=true)
+@EqualsAndHashCode(callSuper = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class StockEvent {
 
-  private StockEventType type;
-  private Long facilityId;
-  private String productCode;
+    private StockEventType type;
+    private Long facilityId;
+    private String productCode;
 
-  @JsonDeserialize(using= DateDeserializer.class)
-  private Date occurred;
+    @JsonDeserialize(using = DateDeserializer.class)
+    private Date occurred;
 
-  @JsonDeserialize(using= DateTimeDeserializer.class)
-  private Date createdTime;
+    @JsonDeserialize(using = DateTimeDeserializer.class)
+    private Date createdTime;
 
-  private Long quantity;
-  private Long lotId;
-  private Lot lot;
-  private String reasonName;
-  private String referenceNumber;
+    private Long quantity;
+    private Long lotId;
+    private Lot lot;
+    private String reasonName;
+    private String referenceNumber;
 
-  private Map<String, String> customProps;
+    private Map<String, String> customProps;
 
-  public StockEvent() {
-    facilityId = null;
-    productCode = null;
-    occurred = null;
-    quantity = null;
-    lotId = null;
-    reasonName = null;
-    referenceNumber = null;
-  }
-
-  public long getQuantity() {return Math.abs(quantity);}
-
-  public long getPositiveOrNegativeQuantity(StockAdjustmentReason reason) {
-    long q = Math.abs(quantity);
-    if (null != reason) {
-      q = reason.getAdditive() ? q : q * -1;
-    } else if (StockEventType.ISSUE == type) {
-      q = q * -1;
+    public StockEvent() {
+        facilityId = null;
+        productCode = null;
+        occurred = null;
+        quantity = null;
+        lotId = null;
+        reasonName = null;
+        referenceNumber = null;
     }
-    return q;
-  }
 
-  /**
-   * True if this is a valid event.
-   * @return true if valid, false otherwise
-   */
-  public boolean isValid() {
-    return isValidAdjustment() || isValidIssue() || isValidReceipt();
-  }
+    public long getQuantity() {
+        return Math.abs(quantity);
+    }
 
-  private boolean isValidProductAndQuantity() {
-    return (null != productCode && null != quantity);
-  }
+    public long getPositiveOrNegativeQuantity(StockAdjustmentReason reason) {
+        long q = Math.abs(quantity);
+        if (null != reason) {
+            q = reason.getAdditive() ? q : q * -1;
+        } else if (StockEventType.ISSUE == type) {
+            q = q * -1;
+        }
+        return q;
+    }
 
-  public boolean isValidAdjustment() {
-    return isValidProductAndQuantity() &&
-            StockEventType.ADJUSTMENT == type &&
-            !StringUtils.isBlank(reasonName);
-  }
+    /**
+     * True if this is a valid event.
+     *
+     * @return true if valid, false otherwise
+     */
+    public boolean isValid() {
+        return isValidAdjustment() || isValidIssue() || isValidReceipt();
+    }
 
-  public boolean isValidIssue() {
-    // Need to know what facility it is going to
-    return isValidProductAndQuantity() &&
-            StockEventType.ISSUE == type &&
-            hasFacility();
-  }
+    private boolean isValidProductAndQuantity() {
+        return (null != productCode && null != quantity);
+    }
 
-  public boolean isValidReceipt() {
-    // Need to know what facility it is coming from
-    return isValidProductAndQuantity() &&
-            StockEventType.RECEIPT == type &&
-            hasFacility();
-  }
+    public boolean isValidAdjustment() {
+        return isValidProductAndQuantity() &&
+                StockEventType.ADJUSTMENT == type &&
+                !StringUtils.isBlank(reasonName);
+    }
 
-  public boolean hasLot() {
-    //TODO
-    return true;
-  }
+    public boolean isValidIssue() {
+        // Need to know what facility it is going to
+        return isValidProductAndQuantity() &&
+                StockEventType.ISSUE == type &&
+                hasFacility();
+    }
 
-  private boolean hasFacility() {
-    return null != facilityId;
-  }
+    public boolean isValidReceipt() {
+        // Need to know what facility it is coming from
+        return isValidProductAndQuantity() &&
+                StockEventType.RECEIPT == type &&
+                hasFacility();
+    }
+
+    public boolean hasLot() {
+        //TODO
+        return true;
+    }
+
+    public String getSyncUpHash() {
+        String eventContentString = this.facilityId.toString() + this.type + this.productCode
+                + this.occurred + this.createdTime
+                + this.quantity + this.reasonName + this.referenceNumber + customProps.get("SOH");
+        return Encoder.hash(eventContentString);
+    }
+
+    private boolean hasFacility() {
+        return null != facilityId;
+    }
 }
